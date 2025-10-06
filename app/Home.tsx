@@ -1,30 +1,43 @@
 import ModalPopup from '@/components/ModalPopup';
+import TaskView from '@/components/TaskView';
 import * as Haptics from 'expo-haptics';
-import React, { useState } from 'react';
-import { FlatList, ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import React, { useMemo, useState } from 'react';
+import { Pressable, ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import DraggableFlatlist, { RenderItemParams } from "react-native-draggable-flatlist";
+import SwipeableItem, { UnderlayParams } from "react-native-swipeable-item";
 import CheckedIcon from "../assets/icons/checked-icon.svg";
+import DeleteBtn from "../assets/icons/delete-icon.svg";
 import PlusIcon from "../assets/icons/plus.svg";
 import RightArrow from "../assets/icons/right-arrow.svg";
 import SetingsIcon from "../assets/icons/settings-icon.svg";
 import UnCheckedIcon from "../assets/icons/unchecked-icon.svg";
 
+export interface Task {
+    id: string,
+    title: string,
+    desc: string,
+    date: string,
+    completed: boolean,
+    order: number
+}
+
 const Home = () => {
-
-    interface Task {
-        id: string,
-        title: string,
-        desc: string,
-        date: string,
-        completed: boolean
-    }
-
     const [visible, setVisible] = useState(false)
+    const [taskViewVisible, setTaskViewVisible] = useState(false)
+    const [selectedTask, setSelectedTask] = useState<Task | null>(null)
+
+    const [isEditing, setIsEditing] = useState(false)
 
     const [tasks, setTask] = useState<Task[]>([])
 
     const [title, setTitle] = useState("")
     const [desc, setDesc] = useState("")
     const [date, setDate] = useState("")
+
+    // Memoized sorted tasks to prevent unnecessary re-renders
+    const sortedTasks = useMemo(() => {
+        return [...tasks].sort((a, b) => a.order - b.order);
+    }, [tasks]);
 
     // Function to get the next available ID
     const getNextId = () => {
@@ -33,16 +46,25 @@ const Home = () => {
         return (maxId + 1).toString();
     }
 
-    // Updated addTask function with auto-incrementing ID
+    // Updated addTask function with auto-incrementing ID and proper order
     const addTask = (title: string, desc: string, date: string) => {
         const newTask: Task = {
             id: getNextId(),
             title,
             desc,
             date,
-            completed: false
+            completed: false,
+            order: tasks.length // Use array length for next order position
         };
         setTask([...tasks, newTask]);
+    }
+
+    const editTask = (taskID: string, title: string, desc: string, date: string) => {
+        setTask(tasks.map(task =>
+            task.id === taskID
+                ? { ...task, title, desc, date }
+                : task
+        ))
     }
 
     const toggleTask = (taskID: string) => {
@@ -61,8 +83,102 @@ const Home = () => {
         ))
     }
 
+    const openTaskView = (item: Task) => {
+        setSelectedTask(item)
+        setTaskViewVisible(true)
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
+    }
+
+    const closeTaskView = () => {
+        setTaskViewVisible(false)
+        setSelectedTask(null)
+    }
+
+    const openEditMode = () => {
+        console.log('Opening edit mode for task:', selectedTask)
+        setIsEditing(true)
+        setVisible(true)
+        setTaskViewVisible(false) // Close TaskView but keep selectedTask
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
+    }
+
+    // Delete task function
+    const deleteTask = (taskId: string) => {
+        setTask(tasks.filter(task => task.id !== taskId));
+        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    }
+
+    // Right swipe reveals delete button (swipe right to delete)
+    const renderUnderlayRight = ({ item }: UnderlayParams<Task>) => (
+        <TouchableOpacity
+            className='bg-red-500 aspect-square h-[4.8rem] rounded-[20px] justify-center items-center shadow-xl ml-2'
+            onPress={() => deleteTask(item.id)}
+        >
+            <DeleteBtn width={24} height={24} color='white' />
+        </TouchableOpacity>
+    )
+
+    const renderItem = ({ item, drag, isActive }: RenderItemParams<Task>) => (
+        <SwipeableItem
+            key={item.id}
+            item={item}
+            overSwipe={20}
+            renderUnderlayRight={renderUnderlayRight}
+            snapPointsRight={[90]}
+            activationThreshold={5}
+            swipeEnabled={true}
+        >
+            <Pressable
+                className={`w-full h-[4.8rem] justify-center items-start rounded-[25px] px-6 mb-5 relative ${isActive ? 'bg-white/40 scale-90' : 'bg-white scale-100'} transition-all duration-300 ease-in-out`}
+                onLongPress={() => {
+                    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium)
+                    drag()
+                }}
+                onPress={() => openTaskView(item)}
+            >
+                <View className='absolute top-1/2 -translate-y-1/2 right-4 flex-row gap-3 items-center'>
+                    <Text className='text-base font-alan-sans-medium text-black/50'>{item?.date}</Text>
+                    <TouchableOpacity
+                        className='p-2 rounded-full bg-[#ccd5ae]'
+                        onPress={(e) => {
+                            e.stopPropagation()
+                            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium)
+                            openTaskView(item)
+                        }}
+                    >
+                        <RightArrow width={22} height={22} color='rgba(0,0,0,0.8)' />
+                    </TouchableOpacity>
+                </View>
+                <View>
+                    <TouchableOpacity
+                        className='flex-row gap-3'
+                        onPress={() => toggleTask(item.id)}
+                    >
+                        {item.completed ? <CheckedIcon width={28} height={28} /> : <UnCheckedIcon width={28} height={28} />}
+                        <Text className={`mt-0.5 text-xl font-alan-sans-medium text-[#283618]  ${item.completed ? "line-through" : ""}`}>{item.title}</Text>
+                    </TouchableOpacity>
+                </View>
+            </Pressable>
+        </SwipeableItem>
+    )
+
     return (
         <View className='items-center relative flex-1 bg-[#ccd5ae]'>
+            {/* TaskView - Conditional rendering */}
+            {taskViewVisible && selectedTask && (
+                <TaskView
+                    taskId={selectedTask.id}
+                    title={selectedTask.title}
+                    date={selectedTask.date}
+                    desc={selectedTask.desc}
+                    isMarked={selectedTask.completed}
+                    toggleTask={toggleTask}
+                    visible={taskViewVisible}
+                    onClose={closeTaskView}
+                    openEditMode={openEditMode}
+                />
+            )}
+
             <ModalPopup
                 visible={visible}
                 setVisible={setVisible}
@@ -73,6 +189,11 @@ const Home = () => {
                 date={date}
                 setDate={setDate}
                 addTask={addTask}
+                isEditing={isEditing}
+                setIsEditing={setIsEditing}
+                selectedTask={selectedTask}
+                setSelectedTask={setSelectedTask}
+                editTask={editTask}
             />
             <TouchableOpacity
                 className='absolute bottom-10 right-10 aspect-square w-[30vw] rounded-[40px] shadow-[0_4px_10px_20px_#000000] bg-[#283618] justify-center items-center'
@@ -134,33 +255,15 @@ const Home = () => {
                         <Text className='font-sans font-bold text-[#191923] text-[32px] ml-3'>Tasks</Text>
                         <View className='bg-black/20 h-0.5 w-[60vw] mt-2'></View>
                     </View>
-                    <FlatList
-                        data={tasks}
+                    <DraggableFlatlist
+                        data={sortedTasks}
                         keyExtractor={item => item.id}
-                        renderItem={({ item }) => (
-                            <View className="w-full h-[4.8rem] justify-center items-start bg-white/80 rounded-[25px] px-6 mb-5 relative">
-                                <View className='absolute top-1/2 -translate-y-1/2 right-4 flex-row gap-3 items-center'>
-                                    <Text className='text-base font-alan-sans-medium text-black/50'>{item?.date}</Text>
-                                    <TouchableOpacity
-                                        className='p-2 rounded-full bg-[#ccd5ae]'
-                                        onPress={() => {
-                                            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium)
-                                        }}
-                                    >
-                                        <RightArrow width={22} height={22} color='rgba(0,0,0,0.8)' />
-                                    </TouchableOpacity>
-                                </View>
-                                <View>
-                                    <TouchableOpacity
-                                        className='flex-row gap-3'
-                                        onPress={() => toggleTask(item.id)}
-                                    >
-                                        {item.completed ? <CheckedIcon width={28} height={28} /> : <UnCheckedIcon width={28} height={28} />}
-                                        <Text className={`mt-0.5 text-xl font-alan-sans-medium text-[#283618]  ${item.completed ? "line-through" : ""}`}>{item.title}</Text>
-                                    </TouchableOpacity>
-                                </View>
-                            </View>
-                        )}
+                        onDragEnd={({ data }) => {
+                            // Reassign order based on new positions and update state
+                            const reorderedTasks = data.map((task: Task, index: number) => ({ ...task, order: index }));
+                            setTask(reorderedTasks);
+                        }}
+                        renderItem={renderItem}
                         className="w-[100%] mt-3"
                         contentContainerStyle={{ paddingBottom: 24 }}
                         scrollEnabled={false}

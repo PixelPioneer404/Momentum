@@ -1,7 +1,10 @@
+import { Task } from '@/app/Home';
 import * as Haptics from 'expo-haptics';
 import React, { useEffect, useState } from 'react';
 import { Keyboard, Modal, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
+import CheckedIcon2 from "../assets/icons/checked-icon-2.svg";
+import EditIcon from '../assets/icons/edit-icon.svg';
 import PlusIcon from "../assets/icons/plus.svg";
 import TaskIcon from "../assets/icons/task-icon.svg";
 import AlertToast from './AlertToast';
@@ -16,9 +19,14 @@ interface TaskFields {
     date: string,
     setDate: (title: string) => void,
     addTask: (title: string, desc: string, date: string) => void
+    isEditing: boolean
+    setIsEditing: (isEditing: boolean) => void
+    selectedTask: Task | null,
+    setSelectedTask: (selectedTask: Task | null) => void
+    editTask: (taskID: string, title: string, desc: string, date: string) => void
 }
 
-const ModalPopup = ({ visible, setVisible, title, setTitle, desc, setDesc, date, setDate, addTask }: TaskFields) => {
+const ModalPopup = ({ visible, setVisible, title, setTitle, desc, setDesc, date, setDate, addTask, isEditing, setIsEditing, selectedTask, setSelectedTask, editTask }: TaskFields) => {
     const [keyboardHeight, setKeyboardHeight] = useState(0);
     const [isDatePickerVisible, setDatePickerVisible] = useState(false);
 
@@ -56,6 +64,36 @@ const ModalPopup = ({ visible, setVisible, title, setTitle, desc, setDesc, date,
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     };
 
+    // Auto-fill form when editing a task
+    useEffect(() => {
+        console.log('ModalPopup useEffect triggered:', { isEditing, selectedTask, visible });
+
+        if (isEditing && selectedTask && visible) {
+            console.log('Auto-filling fields with:', selectedTask);
+            setTitle(selectedTask.title || "");
+            setDesc(selectedTask.desc || "");
+            setDate(selectedTask.date || "");
+        } else if (!isEditing && visible) {
+            // Only reset when explicitly not editing and modal is visible
+            console.log('Resetting form for new task');
+            setTitle("");
+            setDesc("");
+            setDate("");
+        }
+    }, [isEditing, selectedTask, visible, setTitle, setDesc, setDate]);
+
+    // Close TaskView after modal opens for editing
+    useEffect(() => {
+        if (isEditing && visible && selectedTask) {
+            // Small delay to ensure modal is fully opened
+            const timer = setTimeout(() => {
+                // This should close the TaskView if there's a way to do it
+                console.log('Modal opened for editing, TaskView should close now');
+            }, 100);
+            return () => clearTimeout(timer);
+        }
+    }, [isEditing, visible, selectedTask]);
+
     useEffect(() => {
         const keyboardWillShow = Keyboard.addListener('keyboardDidShow', (e) => {
             setKeyboardHeight(e.endCoordinates.height);
@@ -83,10 +121,12 @@ const ModalPopup = ({ visible, setVisible, title, setTitle, desc, setDesc, date,
                 <View
                     className='flex-1 absolute inset-0'
                     onTouchEnd={() => {
-                        setVisible(false)
-                        setTitle("")
-                        setDesc("")
-                        setDate("")
+                        setIsEditing(false);
+                        setSelectedTask(null);
+                        setVisible(false);
+                        setTitle("");
+                        setDesc("");
+                        setDate("");
                     }}
                 />
                 <View className='flex-1 justify-end'>
@@ -102,9 +142,15 @@ const ModalPopup = ({ visible, setVisible, title, setTitle, desc, setDesc, date,
                         <View className='p-8 pb-4'>
                             <View className='w-full h-[72px] bg-[#f9f7e7] rounded-[30px] flex-row gap-3 justify-center items-center relative'>
                                 <View className='absolute left-5'>
-                                    <TaskIcon width={40} height={40} />
+                                    {isEditing
+                                        ? <EditIcon width={40} height={40} />
+                                        : <TaskIcon width={40} height={40} />
+                                    }
                                 </View>
-                                <Text className='text-[2.8rem] font-alan-sans-medium text-[#283618]'>Add a task</Text>
+                                {isEditing
+                                    ? <Text className='text-[2.8rem] font-alan-sans-medium text-[#283618]'>Edit this task</Text>
+                                    : <Text className='text-[2.8rem] font-alan-sans-medium text-[#283618]'>Add a task</Text>
+                                }
                             </View>
                         </View>
 
@@ -117,26 +163,13 @@ const ModalPopup = ({ visible, setVisible, title, setTitle, desc, setDesc, date,
                         >
                             <View className='flex-col gap-4'>
                                 <View className='w-full gap-2'>
-                                    <Text className='text-[22px] font-alan-sans-medium text-[#191923] ml-3'>Title<Text className='text-red-700'>&nbsp;*</Text></Text>
+                                    <Text className='text-[22px] font-alan-sans-medium text-[#191923] ml-3'>Title{!isEditing && <Text className='text-red-700'>&nbsp;*</Text>}</Text>
                                     <TextInput
                                         className='text-base text-black/80 font-alan-sans-medium bg-[#f9f7e7] px-5 h-[50px] rounded-[25px]'
                                         placeholder="Complete maths homework"
                                         value={title}
                                         onChangeText={setTitle}
                                         placeholderTextColor='rgba(25,25,35,0.4)'
-                                    />
-                                </View>
-                                <View className='w-full gap-2'>
-                                    <Text className='text-[22px] font-alan-sans-medium text-[#191923] ml-3'>Description</Text>
-                                    <TextInput
-                                        className='text-base text-black/80 font-alan-sans-medium bg-[#f9f7e7] px-5 pt-4 h-[150px] rounded-[25px]'
-                                        placeholder="Solve the 3rd chapter"
-                                        value={desc}
-                                        onChangeText={setDesc}
-                                        placeholderTextColor='rgba(25,25,35,0.4)'
-                                        multiline
-                                        numberOfLines={3}
-                                        textAlignVertical='top'
                                     />
                                 </View>
                                 <View className='w-full gap-2'>
@@ -164,6 +197,19 @@ const ModalPopup = ({ visible, setVisible, title, setTitle, desc, setDesc, date,
                                         </Text>
                                     </TouchableOpacity>
                                 </View>
+                                <View className='w-full gap-2'>
+                                    <Text className='text-[22px] font-alan-sans-medium text-[#191923] ml-3'>Description</Text>
+                                    <TextInput
+                                        className='text-base text-black/80 font-alan-sans-medium bg-[#f9f7e7] px-5 pt-4 h-[150px] rounded-[25px]'
+                                        placeholder="Solve the 3rd chapter"
+                                        value={desc}
+                                        onChangeText={setDesc}
+                                        placeholderTextColor='rgba(25,25,35,0.4)'
+                                        multiline
+                                        numberOfLines={3}
+                                        textAlignVertical='top'
+                                    />
+                                </View>
                             </View>
                         </ScrollView>
 
@@ -186,21 +232,43 @@ const ModalPopup = ({ visible, setVisible, title, setTitle, desc, setDesc, date,
                             <TouchableOpacity
                                 className='w-full h-[72px] bg-[#283618] rounded-[30px] justify-center items-center gap-2 flex-row'
                                 onPress={() => {
-                                    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium)
+                                    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+                                    console.log('Save button pressed:', { isEditing, selectedTask, title, desc, date });
+
                                     if (title.trim()) {
-                                        addTask(title, desc, date)
-                                        setVisible(false)
-                                        setTitle("")
-                                        setDesc("")
-                                        setDate("")
-                                        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success)
+                                        if (isEditing && selectedTask?.id) {
+                                            console.log('Editing task:', selectedTask.id, 'with data:', { title, desc, date });
+                                            editTask(selectedTask.id, title, desc, date);
+                                            setIsEditing(false);
+                                            setSelectedTask(null);
+                                        } else if (!isEditing) {
+                                            console.log('Adding new task with data:', { title, desc, date });
+                                            addTask(title, desc, date);
+                                        }
+
+                                        setVisible(false);
+                                        // Reset form fields
+                                        setTitle("");
+                                        setDesc("");
+                                        setDate("");
+                                        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
                                     } else {
                                         handleEmptyTaskField();
                                     }
                                 }}
                             >
-                                <PlusIcon width={24} height={24} color='#f9f7e7' strokeWidth={2} />
-                                <Text className='text-[#f9f7e7]/80 font-alan-sans-medium text-3xl'>Add</Text>
+                                {isEditing
+                                    ?
+                                    <>
+                                        <CheckedIcon2 width={24} height={24} />
+                                        <Text className='text-[#f9f7e7]/80 font-alan-sans-medium text-3xl'>Save</Text>
+                                    </>
+                                    :
+                                    <>
+                                        <PlusIcon width={24} height={24} color='#f9f7e7' strokeWidth={2} />
+                                        <Text className='text-[#f9f7e7]/80 font-alan-sans-medium text-3xl'>Add</Text>
+                                    </>
+                                }
                             </TouchableOpacity>
                         </View>
                     </View>
