@@ -1,6 +1,7 @@
 import ModalPopup from '@/components/ModalPopup';
 import TaskView from '@/components/TaskView';
 import * as Haptics from 'expo-haptics';
+import LottieView from 'lottie-react-native';
 import React, { useMemo, useState } from 'react';
 import { Pressable, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import DraggableFlatlist, { RenderItemParams } from "react-native-draggable-flatlist";
@@ -208,10 +209,19 @@ const Home = () => {
             >
                 <PlusIcon height={50} width={50} color="#ccd5ae" strokeWidth={1.5} />
             </TouchableOpacity>
-            <View className='absolute top-0 left-0 w-full h-[25vh] flex-row justify-between items-end px-8 bg-[#081c15] pb-8 rounded-b-[35px] z-999'>
-                <View className='flex-col justify-center items-start'>
-                    <Text className="text-[22px] font-alan-sans-medium text-[#ccd5ae]">Welcome,</Text>
-                    <Text className="text-4xl font-alan-sans-medium text-[#f9f7e7]">Rajbeer Saha</Text>
+            <View className='absolute top-0 left-0 w-full h-[25vh] flex-row justify-between items-end px-6 bg-[#081c15] pb-6 rounded-b-[35px] z-999'>
+                <View className='flex-row justify-center items-center gap-3'>
+                    <LottieView
+                        source={require("../assets/lottie/profile-male.json")}
+                        style={{ width: 56, height: 56 }}
+                        autoPlay
+                        loop
+                        speed={1.2}
+                    />
+                    <View className='flex-col justify-center items-start'>
+                        <Text className="text-[22px] font-alan-sans-medium text-[#ccd5ae]">Welcome,</Text>
+                        <Text className="text-4xl font-alan-sans-medium text-[#f9f7e7]">Rajbeer Saha</Text>
+                    </View>
                 </View>
                 <TouchableOpacity
                     onPress={() => {
