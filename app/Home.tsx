@@ -3,7 +3,7 @@ import TaskView from '@/components/TaskView';
 import * as Haptics from 'expo-haptics';
 import LottieView from 'lottie-react-native';
 import React, { useMemo, useState } from 'react';
-import { Pressable, ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import { Pressable, Text, TouchableOpacity, View } from 'react-native';
 import DraggableFlatlist, { RenderItemParams } from "react-native-draggable-flatlist";
 import SwipeableItem, { UnderlayParams } from "react-native-swipeable-item";
 import CheckedIcon from "../assets/icons/checked-icon.svg";
@@ -209,46 +209,22 @@ const Home = () => {
             >
                 <PlusIcon height={50} width={50} color="#ccd5ae" strokeWidth={1.5} />
             </TouchableOpacity>
-            <View className='absolute top-0 left-0 w-full h-[25vh] flex-row justify-between items-end px-6 bg-[#081c15] pb-6 rounded-b-[35px] z-999'>
-                <View className='flex-row justify-center items-center gap-3'>
-                    <LottieView
-                        source={require("../assets/lottie/profile-male.json")}
-                        style={{ width: 56, height: 56 }}
-                        autoPlay
-                        loop
-                        speed={1.2}
-                    />
-                    <View className='flex-col justify-center items-start'>
-                        <Text className="text-[22px] font-alan-sans-medium text-[#ccd5ae]">Welcome,</Text>
-                        <Text className="text-4xl font-alan-sans-medium text-[#f9f7e7]">Rajbeer Saha</Text>
+            <View className='absolute top-0 left-0 flex-1 w-[100vw] h-[100vh] flex-col'>
+                <View className='w-full h-[25vh] flex-row justify-between items-end px-6 bg-[#081c15] pb-8 rounded-b-[35px] z-999'>
+                    <View className='flex-row justify-center items-center gap-3'>
+                        <LottieView
+                            source={require("../assets/lottie/profile-male.json")}
+                            style={{ width: 56, height: 56 }}
+                            autoPlay
+                            loop
+                            speed={1.2}
+                        />
+                        <View className='flex-col justify-center items-start'>
+                            <Text className="text-[22px] font-alan-sans-medium text-[#ccd5ae]">Welcome,</Text>
+                            <Text className="text-4xl font-alan-sans-medium text-[#f9f7e7]">Rajbeer Saha</Text>
+                        </View>
                     </View>
-                </View>
-                <TouchableOpacity
-                    onPress={() => {
-                        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium)
-                        setTimeout(() => {
-                            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
-                        }, 50)
-                    }}
-                >
-                    <SetingsIcon width={40} height={40} />
-                </TouchableOpacity>
-            </View>
-            <ScrollView
-                className='relative mt-[25vh] w-full'
-                style={{ zIndex: 1 }}
-                contentContainerStyle={{
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                    justifyContent: 'flex-start',
-                    paddingTop: 24,
-                    paddingHorizontal: 24
-                }}
-            >
-                <View className='relative w-full h-[15vh] bg-[#3a2618] rounded-[35px] justify-center items-center'>
                     <TouchableOpacity
-                        className='absolute bottom-5 right-5 aspect-square p-3 rounded-full shadow-2xl bg-[#ccd5ae] justify-center items-center'
-                        style={{ zIndex: 999 }}
                         onPress={() => {
                             Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium)
                             setTimeout(() => {
@@ -256,35 +232,57 @@ const Home = () => {
                             }, 50)
                         }}
                     >
-                        <PlusIcon height={20} width={20} color="#000000" strokeWidth={4} />
+                        <SetingsIcon width={40} height={40} />
                     </TouchableOpacity>
-                    <Text className='text-gray-300/40 text-[15px] font-alan-sans-medium'>What&apos;s your most urgent task ?</Text>
                 </View>
-                <View className='w-full flex-col mt-4 gap-2'>
-                    <View className='w-full items-center justify-start gap-4 mt-5 flex-row'>
-                        <Text className='font-sans font-bold text-[#191923] text-[32px] ml-3'>Tasks</Text>
-                        <View className='bg-black/20 h-0.5 w-[60vw] mt-2'></View>
-                    </View>
-                    <DraggableFlatlist
-                        data={sortedTasks}
-                        keyExtractor={item => item.id}
-                        onDragEnd={({ data }) => {
-                            // Reassign order based on new positions and update state
-                            const reorderedTasks = data.map((task: Task, index: number) => ({ ...task, order: index }));
-                            setTask(reorderedTasks);
-                        }}
-                        renderItem={renderItem}
-                        className="w-[100%] mt-3"
-                        contentContainerStyle={{ paddingBottom: 24 }}
-                        scrollEnabled={false}
-                        ListEmptyComponent={
-                            <View className='flex-1 justify-center items-center h-[30vh]'>
-                                <Text className='text-xl text-[#283618]/60 font-alan-sans-medium'>Click the + button to add a task</Text>
-                            </View>
-                        }
-                    />
+                <View
+                    className='relative w-[100%] flex-1 flex-col items-center justify-start px-8'
+                    style={{ zIndex: 1 }}
+                >
+                        <DraggableFlatlist
+                            data={sortedTasks}
+                            keyExtractor={item => item.id}
+                            onDragEnd={({ data }) => {
+                                // Reassign order based on new positions and update state
+                                const reorderedTasks = data.map((task: Task, index: number) => ({ ...task, order: index }));
+                                setTask(reorderedTasks);
+                            }}
+                            ListHeaderComponent={
+                                <View className='flex-col w-full gap-4 mb-[24px] mt-[24px]'>
+                                    <View className='relative w-[90vw] h-[15vh] bg-[#3a2618] rounded-[35px] justify-center items-center'>
+                                        <TouchableOpacity
+                                            className='absolute bottom-5 right-5 aspect-square p-3 rounded-full shadow-2xl bg-[#ccd5ae] justify-center items-center'
+                                            style={{ zIndex: 999 }}
+                                            onPress={() => {
+                                                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium)
+                                                setTimeout(() => {
+                                                    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
+                                                }, 50)
+                                            }}
+                                        >
+                                            <PlusIcon height={20} width={20} color="#000000" strokeWidth={4} />
+                                        </TouchableOpacity>
+                                        <Text className='text-gray-300/40 text-[15px] font-alan-sans-medium'>What&apos;s your most urgent task ?</Text>
+                                    </View>
+                                    <View className='w-full items-center justify-start gap-4 mt-5 flex-row'>
+                                        <Text className='font-sans font-bold text-[#191923] text-[32px] ml-3'>Tasks</Text>
+                                        <View className='bg-black/20 h-0.5 w-[60vw] mt-2'></View>
+                                    </View>
+                                </View>
+                            }
+                            renderItem={renderItem}
+                            className="w-full"
+                            contentContainerStyle={{ paddingBottom: 160, flexGrow: 1 }}
+                            showsVerticalScrollIndicator={false}
+                            scrollEnabled={true}
+                            ListEmptyComponent={
+                                <View className='flex-1 justify-center items-center h-[30vh]'>
+                                    <Text className='text-xl text-[#283618]/60 font-alan-sans-medium'>Click the + button to add a task</Text>
+                                </View>
+                            }
+                        />
                 </View>
-            </ScrollView>
+            </View>
         </View>
     )
 }
