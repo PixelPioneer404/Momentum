@@ -239,48 +239,55 @@ const Home = () => {
                     className='relative w-[100%] flex-1 flex-col items-center justify-start px-8'
                     style={{ zIndex: 1 }}
                 >
-                        <DraggableFlatlist
-                            data={sortedTasks}
-                            keyExtractor={item => item.id}
-                            onDragEnd={({ data }) => {
-                                // Reassign order based on new positions and update state
-                                const reorderedTasks = data.map((task: Task, index: number) => ({ ...task, order: index }));
-                                setTask(reorderedTasks);
-                            }}
-                            ListHeaderComponent={
-                                <View className='flex-col w-full gap-4 mb-[24px] mt-[24px]'>
-                                    <View className='relative w-[90vw] h-[15vh] bg-[#3a2618] rounded-[35px] justify-center items-center'>
-                                        <TouchableOpacity
-                                            className='absolute bottom-5 right-5 aspect-square p-3 rounded-full shadow-2xl bg-[#ccd5ae] justify-center items-center'
-                                            style={{ zIndex: 999 }}
-                                            onPress={() => {
-                                                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium)
-                                                setTimeout(() => {
-                                                    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
-                                                }, 50)
-                                            }}
-                                        >
-                                            <PlusIcon height={20} width={20} color="#000000" strokeWidth={4} />
-                                        </TouchableOpacity>
-                                        <Text className='text-gray-300/40 text-[15px] font-alan-sans-medium'>What&apos;s your most urgent task ?</Text>
-                                    </View>
-                                    <View className='w-full items-center justify-start gap-4 mt-5 flex-row'>
-                                        <Text className='font-sans font-bold text-[#191923] text-[32px] ml-3'>Tasks</Text>
-                                        <View className='bg-black/20 h-0.5 w-[60vw] mt-2'></View>
-                                    </View>
+                    <DraggableFlatlist
+                        data={sortedTasks}
+                        keyExtractor={item => item.id}
+                        onDragEnd={({ data }) => {
+                            // Reassign order based on new positions and update state
+                            const reorderedTasks = data.map((task: Task, index: number) => ({ ...task, order: index }));
+                            setTask(reorderedTasks);
+                        }}
+                        ListHeaderComponent={
+                            <View className='flex-col w-full gap-4 mb-[24px] mt-[24px]'>
+                                <View className='relative w-[90vw] h-[15vh] bg-[#3a2618] rounded-[35px] justify-center items-center'>
+                                    <TouchableOpacity
+                                        className='absolute bottom-5 right-5 aspect-square p-3 rounded-full shadow-2xl bg-[#ccd5ae] justify-center items-center'
+                                        style={{ zIndex: 999 }}
+                                        onPress={() => {
+                                            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium)
+                                            setTimeout(() => {
+                                                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
+                                            }, 50)
+                                        }}
+                                    >
+                                        <PlusIcon height={20} width={20} color="#000000" strokeWidth={4} />
+                                    </TouchableOpacity>
+                                    <Text className='text-gray-300/40 text-[15px] font-alan-sans-medium'>What&apos;s your most urgent task ?</Text>
                                 </View>
-                            }
-                            renderItem={renderItem}
-                            className="w-full"
-                            contentContainerStyle={{ paddingBottom: 160, flexGrow: 1 }}
-                            showsVerticalScrollIndicator={false}
-                            scrollEnabled={true}
-                            ListEmptyComponent={
-                                <View className='flex-1 justify-center items-center h-[30vh]'>
-                                    <Text className='text-xl text-[#283618]/60 font-alan-sans-medium'>Click the + button to add a task</Text>
+                                <View className='w-full items-center justify-start gap-4 mt-5 flex-row'>
+                                    <Text className='font-sans font-bold text-[#191923] text-[32px] ml-3'>Tasks</Text>
+                                    <View className='bg-black/20 h-0.5 w-[60vw] mt-2'></View>
                                 </View>
-                            }
-                        />
+                            </View>
+                        }
+                        renderItem={renderItem}
+                        className="w-full"
+                        contentContainerStyle={{ paddingBottom: 160, flexGrow: 1 }}
+                        showsVerticalScrollIndicator={false}
+                        scrollEnabled={true}
+                        ListEmptyComponent={
+                            <View className='flex-1 justify-center items-center h-[20vh] mt-[-40px]'>
+                                <LottieView
+                                    source={require("../assets/lottie/empty-task.json")}
+                                    style={{ width: 250, height: 250, opacity: 0.6 }}
+                                    autoPlay
+                                    loop
+                                    speed={1.0}
+                                />
+                                <Text className='text-xl text-[#283618]/60 font-alan-sans-medium mt-[-40px]'>Click the + button to add a task</Text>
+                            </View>
+                        }
+                    />
                 </View>
             </View>
         </View>
