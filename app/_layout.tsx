@@ -1,3 +1,4 @@
+import { UserProvider } from "@/contexts/UserContext";
 import { useFonts } from "expo-font";
 import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
@@ -25,11 +26,18 @@ export default function RootLayout() {
     return null;
   }
   return (
-    <GestureHandlerRootView style={{ flex: 1 }}>
-      <StatusBar hidden={true} />
-      <Stack>
+    <UserProvider>
+      <GestureHandlerRootView style={{ flex: 1 }}>
+        <StatusBar hidden={true} />
+        <Stack>
         <Stack.Screen
           name="index"
+          options={{
+            headerShown: false
+          }}
+        />
+        <Stack.Screen
+          name="Onboarding"
           options={{
             headerShown: false
           }}
@@ -40,7 +48,8 @@ export default function RootLayout() {
             headerShown: false
           }}
         />
-      </Stack>
-    </GestureHandlerRootView>
+        </Stack>
+      </GestureHandlerRootView>
+    </UserProvider>
   )
 }

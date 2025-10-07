@@ -1,5 +1,6 @@
 import ModalPopup from '@/components/ModalPopup';
 import TaskView from '@/components/TaskView';
+import { useUser } from '@/contexts/UserContext';
 import * as Haptics from 'expo-haptics';
 import LottieView from 'lottie-react-native';
 import React, { useMemo, useState } from 'react';
@@ -23,6 +24,7 @@ export interface Task {
 }
 
 const Home = () => {
+    const { userName } = useUser();
     const [visible, setVisible] = useState(false)
     const [taskViewVisible, setTaskViewVisible] = useState(false)
     const [selectedTask, setSelectedTask] = useState<Task | null>(null)
@@ -221,7 +223,7 @@ const Home = () => {
                         />
                         <View className='flex-col justify-center items-start'>
                             <Text className="text-[22px] font-alan-sans-medium text-[#ccd5ae]">Welcome,</Text>
-                            <Text className="text-4xl font-alan-sans-medium text-[#f9f7e7]">Rajbeer Saha</Text>
+                            <Text className="text-4xl font-alan-sans-medium text-[#f9f7e7]">{userName || 'User'}</Text>
                         </View>
                     </View>
                     <TouchableOpacity

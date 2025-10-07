@@ -41,7 +41,7 @@ export default function App() {
             setTimeout(() => {
               Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
             }, 50);
-            router.push("/Home")
+            router.push("/Onboarding")
           }}
         >
           <View className="flex-1 flex-row justify-center items-center gap-3">
