@@ -41,3 +41,7 @@ app-example
 # generated native folders
 /ios
 /android
+
+# Markdown files (except README.md)
+*.md
+!README.md
