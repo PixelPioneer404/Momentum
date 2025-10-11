@@ -135,8 +135,10 @@ const ModalPopup = ({ visible, setVisible, title, setTitle, desc, setDesc, date,
                     <View
                         className='bg-[#a3b18a] shadow-[0_0_10px_black] rounded-t-[40px] flex-col'
                         style={{
-                            maxHeight: keyboardHeight > 0 ? `${100 - (keyboardHeight / 8)}%` : '85%',
-                            minHeight: '70%',
+                            maxHeight: keyboardHeight > 0 
+                                ? `${100 - (keyboardHeight / 8)}%` 
+                                : isUrgentTask ? '45%' : '85%',  // Smaller height for urgent tasks
+                            minHeight: isUrgentTask ? '35%' : '70%',  // Smaller min height for urgent tasks
                             marginBottom: keyboardHeight > 0 ? keyboardHeight : 0
                         }}
                     >
@@ -151,7 +153,7 @@ const ModalPopup = ({ visible, setVisible, title, setTitle, desc, setDesc, date,
                                 </View>
                                 {isUrgentTask 
                                     ? <Text className='text-[2.8rem] font-alan-sans-medium text-[#283618]'>
-                                        {isEditing ? 'Edit urgent task' : 'Add urgent task'}
+                                        {isEditing ? 'Edit Priority' : 'Set Priority'}
                                       </Text>
                                     : isEditing
                                         ? <Text className='text-[2.8rem] font-alan-sans-medium text-[#283618]'>Edit this task</Text>
@@ -278,7 +280,7 @@ const ModalPopup = ({ visible, setVisible, title, setTitle, desc, setDesc, date,
                                 {isUrgentTask 
                                     ? <>
                                         <PlusIcon width={24} height={24} color='#f9f7e7' strokeWidth={2} />
-                                        <Text className='text-[#f9f7e7]/80 font-alan-sans-medium text-3xl'>Set Priority</Text>
+                                        <Text className='text-[#f9f7e7]/80 font-alan-sans-medium text-3xl'>Add Task</Text>
                                       </>
                                     : isEditing
                                         ? <>

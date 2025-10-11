@@ -148,64 +148,68 @@ const SettingsModal = ({ visible, setVisible }: SettingsModalProps) => {
                     </Text>
 
                     {/* User Profile Section */}
-                    <View className="flex-row items-center mb-8 bg-[#ccd5ae]/30 rounded-[20px] p-4">
-                        <LottieView
-                            source={require("../assets/lottie/profile-male.json")}
-                            style={{ width: 56, height: 56 }}
-                            autoPlay
-                            loop
-                            speed={1.2}
-                        />
-                        <View className="ml-4 flex-1">
-                            {isEditingName ? (
-                                <View>
-                                    <TextInput
-                                        value={editedName}
-                                        onChangeText={setEditedName}
-                                        className="text-[24px] font-alan-sans-medium text-[#283618] border-b border-[#283618] pb-1"
-                                        placeholder="Enter display name"
-                                        autoFocus
-                                        maxLength={30}
-                                    />
-                                    <View className="flex-row mt-2 space-x-2">
-                                        <TouchableOpacity
-                                            onPress={handleSaveName}
-                                            className="bg-[#283618] px-3 py-1 rounded-lg"
-                                        >
-                                            <Text className="text-[12px] font-alan-sans-medium text-[#f9f7e7]">
-                                                SAVE
-                                            </Text>
-                                        </TouchableOpacity>
-                                        <TouchableOpacity
-                                            onPress={handleCancelEdit}
-                                            className="bg-[#ccd5ae] px-3 py-1 rounded-lg"
-                                        >
-                                            <Text className="text-[12px] font-alan-sans-medium text-[#283618]">
-                                                CANCEL
-                                            </Text>
-                                        </TouchableOpacity>
+                    <View className="relative mb-8 bg-[#ccd5ae]/30 rounded-[20px] p-4">
+                        {/* Edit Button - Absolute positioned in top-right */}
+                        {!isEditingName && (
+                            <TouchableOpacity
+                                onPress={handleEditName}
+                                className="absolute top-3 right-3 bg-transparent rounded-lg z-10"
+                            >
+                                <Text className="text-[12px] font-alan-sans-medium text-[#283618]">
+                                    EDIT
+                                </Text>
+                            </TouchableOpacity>
+                        )}
+                        
+                        <View className="flex-row items-center">
+                            <LottieView
+                                source={require("../assets/lottie/profile-male.json")}
+                                style={{ width: 56, height: 56 }}
+                                autoPlay
+                                loop
+                                speed={1.2}
+                            />
+                            <View className="ml-4 flex-1 pr-16">
+                                {isEditingName ? (
+                                    <View>
+                                        <TextInput
+                                            value={editedName}
+                                            onChangeText={setEditedName}
+                                            className="text-[24px] font-alan-sans-medium text-[#283618] border-b border-[#283618] pb-1"
+                                            placeholder="Enter display name"
+                                            autoFocus
+                                            maxLength={30}
+                                        />
+                                        <View className="flex-row mt-3 gap-3">
+                                            <TouchableOpacity
+                                                onPress={handleSaveName}
+                                                className="bg-[#283618] px-5 py-2 rounded-xl flex-1"
+                                            >
+                                                <Text className="text-[14px] font-alan-sans-medium text-[#f9f7e7] text-center">
+                                                    SAVE
+                                                </Text>
+                                            </TouchableOpacity>
+                                            <TouchableOpacity
+                                                onPress={handleCancelEdit}
+                                                className="bg-[#ccd5ae] px-5 py-2 rounded-xl flex-1"
+                                            >
+                                                <Text className="text-[14px] font-alan-sans-medium text-[#283618] text-center">
+                                                    CANCEL
+                                                </Text>
+                                            </TouchableOpacity>
+                                        </View>
                                     </View>
-                                </View>
-                            ) : (
-                                <View>
-                                    <Text className="text-[24px] font-alan-sans-medium text-[#283618]">
-                                        {displayName || 'User'}
-                                    </Text>
-                                    <View className="flex-row items-center justify-between">
-                                        <Text className="text-[16px] font-alan-sans-medium text-[#283618]/60">
+                                ) : (
+                                    <View>
+                                        <Text className="text-[24px] font-alan-sans-medium text-[#283618]">
+                                            {displayName || 'User'}
+                                        </Text>
+                                        <Text className="text-[16px] font-alan-sans-medium text-[#283618]/60 mt-1">
                                             {user?.email}
                                         </Text>
-                                        <TouchableOpacity
-                                            onPress={handleEditName}
-                                            className="bg-transparent px-3 py-1 rounded-lg"
-                                        >
-                                            <Text className="text-[13px] font-alan-sans-medium text-[#283618]">
-                                                EDIT
-                                            </Text>
-                                        </TouchableOpacity>
                                     </View>
-                                </View>
-                            )}
+                                )}
+                            </View>
                         </View>
                     </View>
 
