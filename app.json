@@ -8,10 +8,14 @@
     "scheme": "momentum",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
+    "splash": {
+      "image": "./assets/app-logo.png"
+    },
     "ios": {
       "supportsTablet": true
     },
     "android": {
+      "package": "com.rajbeersaha.momentum",
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
         "foregroundImage": "./assets/app-logo.png"
@@ -43,6 +47,12 @@
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "0cd52063-f53e-4d62-aec0-9dcc967f0e95"
+      }
     }
   }
 }
