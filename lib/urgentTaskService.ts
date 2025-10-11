@@ -8,34 +8,34 @@ export interface UrgentTask {
     updated_at: string;
 }
 
-// Get user's urgent task (should only be one per user)
+// Get user's urgent task (should only be one per user) - OPTIMIZED
 export async function getUserUrgentTask(userId: string): Promise<UrgentTask | null> {
     try {
         console.log('🔍 Service: Querying urgent_tasks for user_id:', userId);
         console.log('🔍 Service: User ID type:', typeof userId);
         console.log('🔍 Service: User ID length:', userId.length);
         
-        // Get the latest urgent task for the user (in case there are multiple)
+        // Get the latest urgent task for the user with explicit field selection
         const { data, error } = await supabase
             .from('urgent_tasks')
-            .select('*')
+            .select('id, user_id, title, created_at, updated_at') // Explicit field selection
             .eq('user_id', userId)
             .order('created_at', { ascending: false })
-            .limit(1);
+            .limit(1)
+            .maybeSingle(); // Use maybeSingle for better performance
 
         if (error) {
             console.error('❌ Error fetching urgent task:', error);
             throw error;
         }
 
-        if (!data || data.length === 0) {
+        if (!data) {
             console.log('📝 No urgent task found for user:', userId);
             return null;
         }
 
-        const urgentTask = data[0];
-        console.log('✅ Found urgent task:', urgentTask);
-        return urgentTask;
+        console.log('✅ Found urgent task:', data);
+        return data;
     } catch (error) {
         console.error('❌ getUserUrgentTask error:', error);
         return null;

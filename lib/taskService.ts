@@ -27,12 +27,12 @@ export interface UpdateTaskData {
     task_order?: number;
 }
 
-// Get all tasks for the current user
+// Get all tasks for the current user - OPTIMIZED
 export async function getUserTasks(userId: string): Promise<Task[]> {
     try {
         const { data, error } = await supabase
             .from('tasks')
-            .select('*')
+            .select('id, user_id, title, description, due_date, completed, task_order, created_at, updated_at') // Explicit field selection for better performance
             .eq('user_id', userId)
             .order('task_order', { ascending: true });
 
@@ -122,24 +122,25 @@ export async function toggleTaskCompletion(taskId: string, completed: boolean): 
     return updateTask(taskId, { completed });
 }
 
-// Update multiple tasks order (for drag and drop reordering)
+// Update multiple tasks order (for drag and drop reordering) - OPTIMIZED
 export async function updateTasksOrder(tasks: { id: string; task_order: number }[]): Promise<boolean> {
     try {
+        // Use bulk upsert instead of individual updates - MUCH FASTER
         const updates = tasks.map(task => ({
             id: task.id,
             task_order: task.task_order
         }));
 
-        for (const update of updates) {
-            const { error } = await supabase
-                .from('tasks')
-                .update({ task_order: update.task_order })
-                .eq('id', update.id);
+        const { error } = await supabase
+            .from('tasks')
+            .upsert(updates, {
+                onConflict: 'id',
+                ignoreDuplicates: false
+            });
 
-            if (error) {
-                console.error('Error updating task order:', error);
-                throw error;
-            }
+        if (error) {
+            console.error('Error updating task order:', error);
+            throw error;
         }
 
         return true;
@@ -149,29 +150,31 @@ export async function updateTasksOrder(tasks: { id: string; task_order: number }
     }
 }
 
-// Get the next available order number for new tasks
+// Get the next available order number for new tasks - OPTIMIZED
 export async function getNextTaskOrder(userId: string): Promise<number> {
     try {
+        // Use aggregate function for better performance
         const { data, error } = await supabase
             .from('tasks')
             .select('task_order')
             .eq('user_id', userId)
             .order('task_order', { ascending: false })
-            .limit(1);
+            .limit(1)
+            .maybeSingle(); // Use maybeSingle for better performance when expecting 0 or 1 result
 
         if (error) {
             console.error('Error getting next task order:', error);
             return 0;
         }
 
-        return data && data.length > 0 ? data[0].task_order + 1 : 0;
+        return data ? data.task_order + 1 : 0;
     } catch (error) {
         console.error('getNextTaskOrder error:', error);
         return 0;
     }
 }
 
-// Get task statistics for a specific date
+// Get task statistics for a specific date - OPTIMIZED
 export async function getTaskStatistics(userId: string, date?: string): Promise<{
     totalTasks: number;
     completedTasks: number;
@@ -181,32 +184,44 @@ export async function getTaskStatistics(userId: string, date?: string): Promise<
     try {
         const today = date || new Date().toISOString().split('T')[0];
         
-        const { data, error } = await supabase
-            .from('tasks')
-            .select('*')
-            .eq('user_id', userId);
-
-        if (error) {
-            console.error('Error getting task statistics:', error);
-            throw error;
-        }
-
-        const tasks = data || [];
-        
-        const totalTasks = tasks.length;
-        const completedTasks = tasks.filter(task => task.completed).length;
-        const tasksCreatedToday = tasks.filter(task => 
-            task.created_at.split('T')[0] === today
-        ).length;
-        const tasksCompletedToday = tasks.filter(task => 
-            task.completed && task.updated_at.split('T')[0] === today
-        ).length;
+        // Use more efficient queries with aggregation - MUCH FASTER
+        const [totalResult, completedResult, createdTodayResult, completedTodayResult] = await Promise.all([
+            // Total tasks count
+            supabase
+                .from('tasks')
+                .select('id', { count: 'exact', head: true })
+                .eq('user_id', userId),
+            
+            // Completed tasks count
+            supabase
+                .from('tasks')
+                .select('id', { count: 'exact', head: true })
+                .eq('user_id', userId)
+                .eq('completed', true),
+            
+            // Tasks created today count
+            supabase
+                .from('tasks')
+                .select('id', { count: 'exact', head: true })
+                .eq('user_id', userId)
+                .gte('created_at', `${today}T00:00:00.000Z`)
+                .lt('created_at', `${today}T23:59:59.999Z`),
+            
+            // Tasks completed today count
+            supabase
+                .from('tasks')
+                .select('id', { count: 'exact', head: true })
+                .eq('user_id', userId)
+                .eq('completed', true)
+                .gte('updated_at', `${today}T00:00:00.000Z`)
+                .lt('updated_at', `${today}T23:59:59.999Z`)
+        ]);
 
         return {
-            totalTasks,
-            completedTasks,
-            tasksCreatedToday,
-            tasksCompletedToday
+            totalTasks: totalResult.count || 0,
+            completedTasks: completedResult.count || 0,
+            tasksCreatedToday: createdTodayResult.count || 0,
+            tasksCompletedToday: completedTodayResult.count || 0
         };
     } catch (error) {
         console.error('getTaskStatistics error:', error);

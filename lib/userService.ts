@@ -31,14 +31,14 @@ export async function createUserProfile(userId: string, displayName: string): Pr
     }
 }
 
-// Get user profile from the users table
+// Get user profile from the users table - OPTIMIZED
 export async function getUserProfile(userId: string): Promise<UserProfile | null> {
     try {
         const { data, error } = await supabase
             .from('users')
-            .select('*')
+            .select('id, display_name, created_at, updated_at') // Explicit field selection
             .eq('id', userId)
-            .single();
+            .maybeSingle(); // Use maybeSingle for better performance
 
         if (error) {
             if (error.code === 'PGRST116') {

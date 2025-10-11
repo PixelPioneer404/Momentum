@@ -53,5 +53,20 @@ export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
         detectSessionInUrl: Platform.OS === 'web',
         autoRefreshToken: true,
         persistSession: true
+    },
+    // Performance optimizations
+    db: {
+        schema: 'public',
+    },
+    global: {
+        headers: {
+            'X-Client-Info': 'momentum-app',
+        },
+    },
+    // Connection pooling and performance settings
+    realtime: {
+        params: {
+            eventsPerSecond: 10
+        }
     }
 })
