@@ -1,12 +1,12 @@
 import { AuthContext } from '@/contexts/AuthProvider';
 import * as Haptics from 'expo-haptics';
 import LottieView from 'lottie-react-native';
-import React, { useContext, useEffect, useState } from 'react';
-import { Modal, Pressable, Text, TouchableOpacity, View } from 'react-native';
+import { useContext, useEffect, useState } from 'react';
+import { Alert, Modal, Pressable, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import PlusIcon from "../assets/icons/plus.svg";
 import { signOut } from '../lib/auth';
 import { getTaskStatistics } from '../lib/taskService';
-import { getUserProfile } from '../lib/userService';
+import { getUserProfile, updateUserDisplayName } from '../lib/userService';
 
 interface SettingsModalProps {
     visible: boolean;
@@ -16,6 +16,8 @@ interface SettingsModalProps {
 const SettingsModal = ({ visible, setVisible }: SettingsModalProps) => {
     const { user } = useContext(AuthContext);
     const [displayName, setDisplayName] = useState<string>('');
+    const [isEditingName, setIsEditingName] = useState<boolean>(false);
+    const [editedName, setEditedName] = useState<string>('');
     const [tasksCreatedToday, setTasksCreatedToday] = useState<number>(0);
     const [tasksCompletedToday, setTasksCompletedToday] = useState<number>(0);
     const [totalTasks, setTotalTasks] = useState<number>(0);
@@ -57,6 +59,37 @@ const SettingsModal = ({ visible, setVisible }: SettingsModalProps) => {
         } catch (error) {
             console.error('Sign out error:', error);
         }
+    };
+
+    const handleEditName = () => {
+        setEditedName(displayName);
+        setIsEditingName(true);
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    };
+
+    const handleSaveName = async () => {
+        if (!user?.id || !editedName.trim()) return;
+        
+        try {
+            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+            const success = await updateUserDisplayName(user.id, editedName.trim());
+            
+            if (success) {
+                setDisplayName(editedName.trim());
+                setIsEditingName(false);
+            } else {
+                Alert.alert('Error', 'Failed to update display name. Please try again.');
+            }
+        } catch (error) {
+            console.error('Error updating display name:', error);
+            Alert.alert('Error', 'Failed to update display name. Please try again.');
+        }
+    };
+
+    const handleCancelEdit = () => {
+        setEditedName('');
+        setIsEditingName(false);
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     };
 
     const closeModal = () => {
@@ -108,12 +141,55 @@ const SettingsModal = ({ visible, setVisible }: SettingsModalProps) => {
                             speed={1.2}
                         />
                         <View className="ml-4 flex-1">
-                            <Text className="text-[24px] font-alan-sans-medium text-[#283618]">
-                                {displayName || 'User'}
-                            </Text>
-                            <Text className="text-[16px] font-alan-sans-medium text-[#283618]/60">
-                                {user?.email}
-                            </Text>
+                            {isEditingName ? (
+                                <View>
+                                    <TextInput
+                                        value={editedName}
+                                        onChangeText={setEditedName}
+                                        className="text-[24px] font-alan-sans-medium text-[#283618] border-b border-[#283618] pb-1"
+                                        placeholder="Enter display name"
+                                        autoFocus
+                                        maxLength={30}
+                                    />
+                                    <View className="flex-row mt-2 space-x-2">
+                                        <TouchableOpacity
+                                            onPress={handleSaveName}
+                                            className="bg-[#283618] px-3 py-1 rounded-lg"
+                                        >
+                                            <Text className="text-[12px] font-alan-sans-medium text-[#f9f7e7]">
+                                                SAVE
+                                            </Text>
+                                        </TouchableOpacity>
+                                        <TouchableOpacity
+                                            onPress={handleCancelEdit}
+                                            className="bg-[#ccd5ae] px-3 py-1 rounded-lg"
+                                        >
+                                            <Text className="text-[12px] font-alan-sans-medium text-[#283618]">
+                                                CANCEL
+                                            </Text>
+                                        </TouchableOpacity>
+                                    </View>
+                                </View>
+                            ) : (
+                                <View>
+                                    <Text className="text-[24px] font-alan-sans-medium text-[#283618]">
+                                        {displayName || 'User'}
+                                    </Text>
+                                    <View className="flex-row items-center justify-between">
+                                        <Text className="text-[16px] font-alan-sans-medium text-[#283618]/60">
+                                            {user?.email}
+                                        </Text>
+                                        <TouchableOpacity
+                                            onPress={handleEditName}
+                                            className="bg-[#283618] px-3 py-1 rounded-lg"
+                                        >
+                                            <Text className="text-[12px] font-alan-sans-medium text-[#f9f7e7]">
+                                                EDIT
+                                            </Text>
+                                        </TouchableOpacity>
+                                    </View>
+                                </View>
+                            )}
                         </View>
                     </View>
 
@@ -123,7 +199,7 @@ const SettingsModal = ({ visible, setVisible }: SettingsModalProps) => {
                             Overview
                         </Text>
                         
-                        <View className="bg-[#081c15] rounded-[20px] p-4 space-y-3">
+                        <View className="bg-[#081c15] rounded-[20px] p-4">
                             {/* Today's Stats */}
                             <View className="bg-[#ccd5ae]/20 rounded-[15px] p-3">
                                 <Text className="text-[16px] font-alan-sans-medium text-[#ccd5ae] mb-2">

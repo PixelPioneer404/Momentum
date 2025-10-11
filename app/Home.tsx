@@ -1,3 +1,4 @@
+import AlertToast from '@/components/AlertToast';
 import ModalPopup from '@/components/ModalPopup';
 import SettingsModal from '@/components/SettingsModal';
 import TaskView from '@/components/TaskView';
@@ -5,7 +6,7 @@ import { AuthContext } from '@/contexts/AuthProvider';
 import { useUser } from '@/contexts/UserContext';
 import * as Haptics from 'expo-haptics';
 import LottieView from 'lottie-react-native';
-import React, { useContext, useEffect, useMemo, useState } from 'react';
+import { useContext, useEffect, useMemo, useState } from 'react';
 import { ActivityIndicator, Pressable, Text, TouchableOpacity, View } from 'react-native';
 import DraggableFlatlist, { RenderItemParams } from "react-native-draggable-flatlist";
 import SwipeableItem, { UnderlayParams } from "react-native-swipeable-item";
@@ -107,6 +108,7 @@ const Home = () => {
     const [taskViewVisible, setTaskViewVisible] = useState(false)
     const [settingsVisible, setSettingsVisible] = useState(false)
     const [selectedTask, setSelectedTask] = useState<Task | null>(null)
+    const [urgentTaskAlertVisible, setUrgentTaskAlertVisible] = useState(false)
 
     const [isEditing, setIsEditing] = useState(false)
 
@@ -330,6 +332,14 @@ const Home = () => {
                 setSelectedTask={setSelectedTask}
                 editTask={editTask}
             />
+
+            {/* AlertToast for urgent task coming soon */}
+            <AlertToast
+                alertTitle="Coming Soon"
+                alertDesc="The urgent task feature is not implemented yet. Stay tuned for future updates!"
+                visible={urgentTaskAlertVisible}
+                setVisible={setUrgentTaskAlertVisible}
+            />
             <TouchableOpacity
                 className='absolute bottom-10 right-10 aspect-square w-[30vw] rounded-[40px] shadow-[0_4px_10px_20px_#000000] bg-[#283618] justify-center items-center'
                 style={{ zIndex: 999 }}
@@ -409,6 +419,7 @@ const Home = () => {
                                             Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium)
                                             setTimeout(() => {
                                                 Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
+                                                setUrgentTaskAlertVisible(true)
                                             }, 50)
                                         }}
                                     >
