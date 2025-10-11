@@ -46,16 +46,6 @@ const dbTaskToUITask = (dbTask: DBTask): Task => ({
     order: dbTask.task_order
 });
 
-// Helper function to convert UI task to DB task format
-const uiTaskToDBTask = (task: Task, userId: string): any => ({
-    user_id: userId,
-    title: task.title,
-    description: task.desc,
-    due_date: task.date,
-    completed: task.completed,
-    task_order: task.order
-});
-
 const Home = () => {
     const { userName, setUserName } = useUser();
     const { user } = useContext(AuthContext);
@@ -129,13 +119,6 @@ const Home = () => {
     const sortedTasks = useMemo(() => {
         return [...tasks].sort((a, b) => a.order - b.order);
     }, [tasks]);
-
-    // Function to get the next available ID
-    const getNextId = () => {
-        if (tasks.length === 0) return '1';
-        const maxId = Math.max(...tasks.map(task => parseInt(task.id)));
-        return (maxId + 1).toString();
-    }
 
     // Updated addTask function to save to database
     const addTask = async (title: string, desc: string, date: string) => {
