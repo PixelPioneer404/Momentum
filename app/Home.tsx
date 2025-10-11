@@ -1,10 +1,11 @@
 import ModalPopup from '@/components/ModalPopup';
 import TaskView from '@/components/TaskView';
+import { AuthContext } from '@/contexts/AuthProvider';
 import { useUser } from '@/contexts/UserContext';
 import * as Haptics from 'expo-haptics';
 import LottieView from 'lottie-react-native';
-import React, { useMemo, useState } from 'react';
-import { Pressable, Text, TouchableOpacity, View } from 'react-native';
+import React, { useContext, useEffect, useMemo, useState } from 'react';
+import { ActivityIndicator, Pressable, Text, TouchableOpacity, View } from 'react-native';
 import DraggableFlatlist, { RenderItemParams } from "react-native-draggable-flatlist";
 import SwipeableItem, { UnderlayParams } from "react-native-swipeable-item";
 import CheckedIcon from "../assets/icons/checked-icon.svg";
@@ -13,6 +14,18 @@ import PlusIcon from "../assets/icons/plus.svg";
 import RightArrow from "../assets/icons/right-arrow.svg";
 import SetingsIcon from "../assets/icons/settings-icon.svg";
 import UnCheckedIcon from "../assets/icons/unchecked-icon.svg";
+import { signOut } from '../lib/auth';
+import {
+    createTask as createTaskDB,
+    Task as DBTask,
+    deleteTask as deleteTaskDB,
+    getNextTaskOrder,
+    getUserTasks,
+    toggleTaskCompletion,
+    updateTask as updateTaskDB,
+    updateTasksOrder
+} from '../lib/taskService';
+import { getUserProfile } from '../lib/userService';
 
 export interface Task {
     id: string,
@@ -23,8 +36,83 @@ export interface Task {
     order: number
 }
 
+// Helper function to convert DB task to UI task format
+const dbTaskToUITask = (dbTask: DBTask): Task => ({
+    id: dbTask.id,
+    title: dbTask.title,
+    desc: dbTask.description,
+    date: dbTask.due_date,
+    completed: dbTask.completed,
+    order: dbTask.task_order
+});
+
+// Helper function to convert UI task to DB task format
+const uiTaskToDBTask = (task: Task, userId: string): any => ({
+    user_id: userId,
+    title: task.title,
+    description: task.desc,
+    due_date: task.date,
+    completed: task.completed,
+    task_order: task.order
+});
+
 const Home = () => {
-    const { userName } = useUser();
+    const { userName, setUserName } = useUser();
+    const { user } = useContext(AuthContext);
+    
+    // State for display name from database
+    const [displayName, setDisplayName] = useState<string>('');
+    const [tasksLoading, setTasksLoading] = useState<boolean>(true);
+    
+    // Debug: Show user ID for testing authentication persistence
+    console.log('Home - Current User ID:', user?.id);
+    console.log('Home - User Email:', user?.email);
+    
+    // Fetch user's display name from database when component mounts
+    useEffect(() => {
+        const fetchUserProfile = async () => {
+            if (user?.id) {
+                try {
+                    const profile = await getUserProfile(user.id);
+                    if (profile?.display_name) {
+                        setDisplayName(profile.display_name);
+                        setUserName(profile.display_name); // Update context as well
+                        console.log('Fetched display name from database:', profile.display_name);
+                    } else {
+                        console.log('No display name found in database');
+                        setDisplayName('User'); // Fallback
+                    }
+                } catch (error) {
+                    console.error('Error fetching user profile:', error);
+                    setDisplayName('User'); // Fallback
+                }
+            }
+        };
+
+        fetchUserProfile();
+    }, [user?.id, setUserName]);
+
+    // Fetch user's tasks from database when component mounts
+    useEffect(() => {
+        const fetchTasks = async () => {
+            if (user?.id) {
+                setTasksLoading(true);
+                try {
+                    const dbTasks = await getUserTasks(user.id);
+                    const uiTasks = dbTasks.map(dbTaskToUITask);
+                    setTask(uiTasks);
+                    console.log('Fetched tasks from database:', uiTasks.length);
+                } catch (error) {
+                    console.error('Error fetching tasks:', error);
+                } finally {
+                    setTasksLoading(false);
+                }
+            }
+        };
+
+        fetchTasks();
+    }, [user?.id]);
+    
     const [visible, setVisible] = useState(false)
     const [taskViewVisible, setTaskViewVisible] = useState(false)
     const [selectedTask, setSelectedTask] = useState<Task | null>(null)
@@ -49,42 +137,86 @@ const Home = () => {
         return (maxId + 1).toString();
     }
 
-    // Updated addTask function with auto-incrementing ID and proper order
-    const addTask = (title: string, desc: string, date: string) => {
-        const newTask: Task = {
-            id: getNextId(),
-            title,
-            desc,
-            date,
-            completed: false,
-            order: tasks.length // Use array length for next order position
-        };
-        setTask([...tasks, newTask]);
-    }
-
-    const editTask = (taskID: string, title: string, desc: string, date: string) => {
-        setTask(tasks.map(task =>
-            task.id === taskID
-                ? { ...task, title, desc, date }
-                : task
-        ))
-    }
-
-    const toggleTask = (taskID: string) => {
-        let task = tasks.find(t => t.id === taskID)
-
-        if (task && !task.completed) {
-            Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success)
-        } else {
-            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium)
+    // Updated addTask function to save to database
+    const addTask = async (title: string, desc: string, date: string) => {
+        if (!user?.id) {
+            console.error('No user ID available');
+            return;
         }
 
-        setTask(tasks.map(task =>
-            task.id === taskID
-                ? { ...task, completed: !task.completed }
-                : task
-        ))
-    }
+        try {
+            const nextOrder = await getNextTaskOrder(user.id);
+            const taskData = {
+                title,
+                description: desc,
+                due_date: date,
+                task_order: nextOrder
+            };
+
+            const newDBTask = await createTaskDB(user.id, taskData);
+            if (newDBTask) {
+                const newUITask = dbTaskToUITask(newDBTask);
+                setTask([...tasks, newUITask]);
+                console.log('Task created successfully:', newUITask);
+            } else {
+                console.error('Failed to create task');
+            }
+        } catch (error) {
+            console.error('Error adding task:', error);
+        }
+    };
+
+    const editTask = async (taskID: string, title: string, desc: string, date: string) => {
+        try {
+            const updates = {
+                title,
+                description: desc,
+                due_date: date
+            };
+
+            const updatedDBTask = await updateTaskDB(taskID, updates);
+            if (updatedDBTask) {
+                const updatedUITask = dbTaskToUITask(updatedDBTask);
+                setTask(tasks.map(task =>
+                    task.id === taskID ? updatedUITask : task
+                ));
+                console.log('Task updated successfully:', updatedUITask);
+            } else {
+                console.error('Failed to update task');
+            }
+        } catch (error) {
+            console.error('Error editing task:', error);
+        }
+    };
+
+    const toggleTask = async (taskID: string) => {
+        let task = tasks.find(t => t.id === taskID);
+
+        if (task && !task.completed) {
+            Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+        } else {
+            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+        }
+
+        if (task) {
+            try {
+                const newCompletedState = !task.completed;
+                const updatedDBTask = await toggleTaskCompletion(taskID, newCompletedState);
+                
+                if (updatedDBTask) {
+                    const updatedUITask = dbTaskToUITask(updatedDBTask);
+                    setTask(tasks.map(t =>
+                        t.id === taskID ? updatedUITask : t
+                    ));
+                    console.log('Task completion toggled:', updatedUITask);
+                } else {
+                    console.error('Failed to toggle task completion');
+                }
+            } catch (error) {
+                console.error('Error toggling task:', error);
+            }
+        }
+    };
 
     const openTaskView = (item: Task) => {
         setSelectedTask(item)
@@ -106,10 +238,20 @@ const Home = () => {
     }
 
     // Delete task function
-    const deleteTask = (taskId: string) => {
-        setTask(tasks.filter(task => task.id !== taskId));
-        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-    }
+    const deleteTask = async (taskId: string) => {
+        try {
+            const success = await deleteTaskDB(taskId);
+            if (success) {
+                setTask(tasks.filter(task => task.id !== taskId));
+                Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+                console.log('Task deleted successfully:', taskId);
+            } else {
+                console.error('Failed to delete task');
+            }
+        } catch (error) {
+            console.error('Error deleting task:', error);
+        }
+    };
 
     // Right swipe reveals delete button (swipe right to delete)
     const renderUnderlayRight = ({ item }: UnderlayParams<Task>) => (
@@ -223,15 +365,23 @@ const Home = () => {
                         />
                         <View className='flex-col justify-center items-start'>
                             <Text className="text-[22px] font-alan-sans-medium text-[#ccd5ae]">Welcome,</Text>
-                            <Text className="text-4xl font-alan-sans-medium text-[#f9f7e7]">{userName || 'User'}</Text>
+                            <Text className="text-4xl font-alan-sans-medium text-[#f9f7e7]">{displayName || userName || 'User'}</Text>
                         </View>
                     </View>
                     <TouchableOpacity
-                        onPress={() => {
+                        onPress={async () => {
                             Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium)
                             setTimeout(() => {
                                 Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
                             }, 50)
+                            
+                            // Logout functionality for testing
+                            try {
+                                await signOut();
+                                console.log('Successfully signed out');
+                            } catch (error) {
+                                console.error('Sign out error:', error);
+                            }
                         }}
                     >
                         <SetingsIcon width={40} height={40} />
@@ -244,10 +394,27 @@ const Home = () => {
                     <DraggableFlatlist
                         data={sortedTasks}
                         keyExtractor={item => item.id}
-                        onDragEnd={({ data }) => {
+                        onDragEnd={async ({ data }) => {
                             // Reassign order based on new positions and update state
                             const reorderedTasks = data.map((task: Task, index: number) => ({ ...task, order: index }));
                             setTask(reorderedTasks);
+                            
+                            // Update order in database
+                            try {
+                                const orderUpdates = reorderedTasks.map(task => ({
+                                    id: task.id,
+                                    task_order: task.order
+                                }));
+                                
+                                const success = await updateTasksOrder(orderUpdates);
+                                if (success) {
+                                    console.log('Task order updated successfully');
+                                } else {
+                                    console.error('Failed to update task order');
+                                }
+                            } catch (error) {
+                                console.error('Error updating task order:', error);
+                            }
                         }}
                         ListHeaderComponent={
                             <View className='flex-col w-full gap-4 mb-[24px] mt-[24px]'>
@@ -278,16 +445,25 @@ const Home = () => {
                         showsVerticalScrollIndicator={false}
                         scrollEnabled={true}
                         ListEmptyComponent={
-                            <View className='flex-1 justify-center items-center h-[20vh] mt-[-40px]'>
-                                <LottieView
-                                    source={require("../assets/lottie/empty-task.json")}
-                                    style={{ width: 250, height: 250, opacity: 0.6 }}
-                                    autoPlay
-                                    loop
-                                    speed={1.0}
-                                />
-                                <Text className='text-xl text-[#283618]/60 font-alan-sans-medium mt-[-40px]'>Click the + button to add a task</Text>
-                            </View>
+                            tasksLoading ? (
+                                // Show loading indicator while fetching tasks
+                                <View className='flex-1 justify-center items-center h-[20vh] mt-[-40px]'>
+                                    <ActivityIndicator size="large" color="#283618" />
+                                    <Text className='text-lg text-[#283618]/60 font-alan-sans-medium mt-4'>Loading your tasks...</Text>
+                                </View>
+                            ) : (
+                                // Show empty state only when loading is complete and no tasks exist
+                                <View className='flex-1 justify-center items-center h-[20vh] mt-[-40px]'>
+                                    <LottieView
+                                        source={require("../assets/lottie/empty-task.json")}
+                                        style={{ width: 250, height: 250, opacity: 0.6 }}
+                                        autoPlay
+                                        loop
+                                        speed={1.0}
+                                    />
+                                    <Text className='text-xl text-[#283618]/60 font-alan-sans-medium mt-[-40px]'>Click the + button to add a task</Text>
+                                </View>
+                            )
                         }
                     />
                 </View>

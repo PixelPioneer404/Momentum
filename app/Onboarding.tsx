@@ -1,14 +1,18 @@
 import AlertToast from '@/components/AlertToast';
+import { AuthContext } from '@/contexts/AuthProvider';
 import { useUser } from '@/contexts/UserContext';
 import * as Haptics from 'expo-haptics';
 import { router } from 'expo-router';
 import LottieView from 'lottie-react-native';
-import React, { useState } from 'react';
+import React, { useContext, useState } from 'react';
 import { Text, TouchableOpacity, View } from 'react-native';
 import { TextInput } from 'react-native-gesture-handler';
+import { supabase } from '../lib/supabase';
+import { createUserProfile } from '../lib/userService';
 
 const Onboarding = () => {
     const { setUserName } = useUser();
+    const { user } = useContext(AuthContext);
     const [name, setName] = useState('');
     const [error, setError] = useState('');
     const [toastVisible, setToastVisible] = useState(false);
@@ -26,7 +30,7 @@ const Onboarding = () => {
         }
     };
 
-    const handleContinue = () => {
+    const handleContinue = async () => {
         if (name.trim() === '') {
             Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error)
             setToastTitle('Input Required');
@@ -39,11 +43,53 @@ const Onboarding = () => {
             return; // Don't proceed if over limit
         }
 
-        // Save the name to context before navigating
-        setUserName(name.trim());
-        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-        // Navigate to Home screen
-        router.replace('/Home');
+        if (!user?.id) {
+            setToastTitle('Error');
+            setToastDesc('User not found. Please try logging in again.');
+            setToastVisible(true);
+            return;
+        }
+
+        try {
+            // 1. Save name to users table in Supabase
+            const userProfile = await createUserProfile(user.id, name.trim());
+            
+            if (!userProfile) {
+                setToastTitle('Error');
+                setToastDesc('Failed to save your name. Please try again.');
+                setToastVisible(true);
+                return;
+            }
+
+            // 2. Update user metadata to mark onboarding as completed
+            const { error } = await supabase.auth.updateUser({
+                data: { 
+                    onboarding_completed: true
+                }
+            });
+
+            if (error) {
+                console.error('Error updating user metadata:', error);
+                setToastTitle('Error');
+                setToastDesc('Failed to complete onboarding. Please try again.');
+                setToastVisible(true);
+                return;
+            }
+
+            // 3. Save the name to context for immediate use
+            setUserName(name.trim());
+            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+            
+            console.log('Onboarding completed! User profile created:', userProfile);
+            
+            // Navigate to Home screen
+            router.replace('/Home');
+        } catch (error) {
+            console.error('Error in handleContinue:', error);
+            setToastTitle('Error');
+            setToastDesc('Something went wrong. Please try again.');
+            setToastVisible(true);
+        }
     };
 
     // Check if continue button should be disabled

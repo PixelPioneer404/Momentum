@@ -45,3 +45,5 @@ app-example
 # Markdown files (except README.md)
 *.md
 !README.md
+
+.env

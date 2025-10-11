@@ -1,12 +1,20 @@
 import * as Haptics from 'expo-haptics';
-import { useRouter } from 'expo-router';
 import LottieView from "lottie-react-native";
-import { Text, TouchableOpacity, View } from "react-native";
+import { Alert, Text, TouchableOpacity, View } from "react-native";
 import GoogleIcon from "../assets/icons/google-icon.svg";
+import { signInWithGoogle } from "../lib/auth";
 
 export default function App() {
 
-  const router = useRouter()
+  const handleGoogleLogin = async () => {
+    try {
+      await signInWithGoogle();
+      // Navigation will be handled by the AuthProvider and _layout.tsx
+    } catch (error) {
+      console.error('Login failed:', error);
+      Alert.alert('Login Failed', 'Please try again later.');
+    }
+  };
 
   return (
     <View className="flex-1 items-center bg-[#ccd5ae]">
@@ -41,7 +49,7 @@ export default function App() {
             setTimeout(() => {
               Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
             }, 50);
-            router.push("/Onboarding")
+            handleGoogleLogin();
           }}
         >
           <View className="flex-1 flex-row justify-center items-center gap-3">
