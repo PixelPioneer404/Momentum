@@ -1,4 +1,5 @@
 import { AuthContext } from '@/contexts/AuthProvider';
+import { useUser } from '@/contexts/UserContext';
 import * as Haptics from 'expo-haptics';
 import LottieView from 'lottie-react-native';
 import { useContext, useEffect, useState } from 'react';
@@ -15,6 +16,7 @@ interface SettingsModalProps {
 
 const SettingsModal = ({ visible, setVisible }: SettingsModalProps) => {
     const { user } = useContext(AuthContext);
+    const { setUserName } = useUser();
     const [displayName, setDisplayName] = useState<string>('');
     const [isEditingName, setIsEditingName] = useState<boolean>(false);
     const [editedName, setEditedName] = useState<string>('');
@@ -50,6 +52,14 @@ const SettingsModal = ({ visible, setVisible }: SettingsModalProps) => {
         fetchUserData();
     }, [user?.id, visible]);
 
+    // Reset editing state when modal is closed
+    useEffect(() => {
+        if (!visible && isEditingName) {
+            setIsEditingName(false);
+            setEditedName('');
+        }
+    }, [visible, isEditingName]);
+
     const handleLogout = async () => {
         try {
             Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
@@ -76,6 +86,7 @@ const SettingsModal = ({ visible, setVisible }: SettingsModalProps) => {
             
             if (success) {
                 setDisplayName(editedName.trim());
+                setUserName(editedName.trim()); // Update the global UserContext
                 setIsEditingName(false);
             } else {
                 Alert.alert('Error', 'Failed to update display name. Please try again.');
@@ -94,6 +105,11 @@ const SettingsModal = ({ visible, setVisible }: SettingsModalProps) => {
 
     const closeModal = () => {
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+        // Reset editing state when modal is closed
+        if (isEditingName) {
+            setIsEditingName(false);
+            setEditedName('');
+        }
         setVisible(false);
     };
 
@@ -181,9 +197,9 @@ const SettingsModal = ({ visible, setVisible }: SettingsModalProps) => {
                                         </Text>
                                         <TouchableOpacity
                                             onPress={handleEditName}
-                                            className="bg-[#283618] px-3 py-1 rounded-lg"
+                                            className="bg-transparent px-3 py-1 rounded-lg"
                                         >
-                                            <Text className="text-[12px] font-alan-sans-medium text-[#f9f7e7]">
+                                            <Text className="text-[13px] font-alan-sans-medium text-[#283618]">
                                                 EDIT
                                             </Text>
                                         </TouchableOpacity>
@@ -199,7 +215,7 @@ const SettingsModal = ({ visible, setVisible }: SettingsModalProps) => {
                             Overview
                         </Text>
                         
-                        <View className="bg-[#081c15] rounded-[20px] p-4">
+                        <View className="bg-[#081c15] rounded-[20px] p-4 gap-4">
                             {/* Today's Stats */}
                             <View className="bg-[#ccd5ae]/20 rounded-[15px] p-3">
                                 <Text className="text-[16px] font-alan-sans-medium text-[#ccd5ae] mb-2">
