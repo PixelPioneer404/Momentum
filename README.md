@@ -1,50 +1,289 @@
-# Welcome to your Expo app 👋
+<div align="center">
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+<img src="assets/app-logo.png" alt="Momentum Logo" width="120" height="120" />
 
-## Get started
+# Momentum
 
-1. Install dependencies
+<img src="https://img.shields.io/badge/React_Native-20232A?style=for-the-badge&logo=react&logoColor=61DAFB" alt="React Native" />
+<img src="https://img.shields.io/badge/Expo-000020?style=for-the-badge&logo=expo&logoColor=white" alt="Expo" />
+<img src="https://img.shields.io/badge/TypeScript-007ACC?style=for-the-badge&logo=typescript&logoColor=white" alt="TypeScript" />
+<img src="https://img.shields.io/badge/Supabase-181818?style=for-the-badge&logo=supabase&logoColor=white" alt="Supabase" />
 
+**A Beautiful, Modern Task Management App Built with React Native & Expo**
+
+*Stay focused. Stay productive. Build momentum.*
+
+[📱 Download](#installation) • [✨ Features](#features) • [🎨 Screenshots](#screenshots) • [🚀 Getting Started](#getting-started)
+
+</div>
+
+---
+
+## 🌟 About Momentum
+
+**Momentum v1.0** is a sleek, intuitive task management application designed to help you build productive habits and maintain focus on what matters most. With its modern design language and powerful features, Momentum transforms the way you organize your daily tasks and urgent priorities.
+
+### 🎯 What Makes Momentum Special?
+
+- **🎨 Modern Design Language**: Clean, minimal interface with smooth animations
+- **⚡ Lightning Fast**: Optimized performance with advanced database indexing
+- **🔒 Secure Authentication**: Powered by Supabase Auth with persistent sessions
+- **📱 Cross-Platform**: Built with React Native - works on iOS, Android, and Web
+- **🎭 Beautiful Animations**: Powered by Lottie animations for delightful interactions
+- **🌙 Intuitive UX**: Drag-and-drop task reordering with haptic feedback
+
+---
+
+## ✨ Features
+
+### 🎯 **Core Task Management**
+- ✅ Create, edit, and delete tasks with ease
+- 📅 Set due dates and descriptions
+- ✔️ Mark tasks as complete with satisfying animations
+- 🔄 Drag-and-drop reordering with real-time updates
+- 📊 Task statistics and completion tracking
+
+### 🚨 **Urgent Task Focus**
+- ⚡ Special "Urgent Task" section for top priorities
+- 🎯 One urgent task at a time to maintain focus
+- 🔥 Quick access and management
+
+### 👤 **User Experience**
+- 🔐 Secure user authentication and profiles
+- 👋 Personalized onboarding experience
+- ⚙️ Comprehensive settings and preferences
+- 📱 Responsive design across all screen sizes
+
+### 🎨 **Design & Polish**
+- 🌈 TailwindCSS styling with NativeWind
+- 🎭 Lottie animations throughout the app
+- 📳 Haptic feedback for interactions
+- 🌊 Smooth transitions and micro-interactions
+
+---
+
+## 🛠 Tech Stack
+
+### **Frontend**
+- **React Native** - Cross-platform mobile development
+- **Expo SDK 52** - Development platform and tools
+- **TypeScript** - Type-safe JavaScript
+- **Expo Router** - File-based navigation
+- **TailwindCSS + NativeWind** - Utility-first styling
+
+### **Backend & Database**
+- **Supabase** - Backend-as-a-Service
+- **PostgreSQL** - Robust relational database
+- **Row Level Security** - Data protection
+- **Real-time subscriptions** - Live data updates
+
+### **Animations & Media**
+- **Lottie React Native** - Vector animations
+- **React Native SVG** - Scalable vector graphics
+- **Expo Haptics** - Tactile feedback
+
+### **Development Tools**
+- **ESLint** - Code linting and formatting
+- **Metro** - React Native bundler
+- **EAS Build** - Cloud-based builds
+
+---
+
+## 🚀 Getting Started
+
+### Prerequisites
+
+Before you begin, ensure you have the following installed:
+
+- **Node.js** (v18 or higher)
+- **npm** or **yarn**
+- **Expo CLI** (`npm install -g @expo/cli`)
+- **Git**
+
+For mobile development:
+- **Expo Go** app on your phone, OR
+- **Android Studio** (for Android emulator)
+- **Xcode** (for iOS simulator, macOS only)
+
+### Installation
+
+1. **Clone the repository**
+   ```bash
+   git clone https://github.com/PixelPioneer404/Momentum.git
+   cd Momentum
+   ```
+
+2. **Install dependencies**
    ```bash
    npm install
    ```
 
-2. Start the app
+3. **Set up environment variables**
+   ```bash
+   # Create a .env file in the root directory
+   cp .env.example .env
+   
+   # Add your Supabase credentials
+   EXPO_PUBLIC_SUPABASE_URL=your_supabase_url
+   EXPO_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+   ```
 
+4. **Set up the database**
+   - Go to your [Supabase Dashboard](https://supabase.com/dashboard)
+   - Create a new project
+   - Run the SQL files in the `database/` folder:
+     - `users_table.sql`
+     - `tasks_table.sql`
+     - `urgent_tasks_table.sql`
+     - `performance_indexes.sql` (optional, for better performance)
+
+5. **Start the development server**
    ```bash
    npx expo start
    ```
 
-In the output, you'll find options to open the app in a
+6. **Run on your device**
+   - **Mobile**: Scan the QR code with Expo Go app
+   - **iOS Simulator**: Press `i` in the terminal
+   - **Android Emulator**: Press `a` in the terminal
+   - **Web**: Press `w` in the terminal
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+---
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+## 📱 Screenshots
 
-## Get a fresh project
+<div align="center">
 
-When you're ready, run:
+| Onboarding | Task Management | Urgent Tasks |
+|------------|-----------------|--------------|
+| *Beautiful welcome experience* | *Intuitive task organization* | *Focus on what matters* |
 
-```bash
-npm run reset-project
+| Settings | Animations | Cross-Platform |
+|----------|------------|----------------|
+| *Comprehensive preferences* | *Delightful interactions* | *Works everywhere* |
+
+</div>
+
+---
+
+## 🏗 Project Structure
+
+```
+Momentum/
+├── app/                    # Expo Router pages
+│   ├── auth.tsx           # Authentication screen
+│   ├── Home.tsx           # Main task management
+│   ├── Onboarding.tsx     # User onboarding
+│   └── _layout.tsx        # Root layout
+├── components/            # Reusable UI components
+│   ├── AlertToast.tsx     # Toast notifications
+│   ├── ModalPopup.tsx     # Modal dialogs
+│   ├── SettingsModal.tsx  # Settings interface
+│   └── TaskView.tsx       # Task detail view
+├── contexts/              # React Context providers
+│   ├── AuthProvider.tsx   # Authentication state
+│   └── UserContext.tsx    # User data management
+├── lib/                   # Core business logic
+│   ├── auth.ts           # Authentication utilities
+│   ├── supabase.ts       # Database client
+│   ├── taskService.ts    # Task operations
+│   ├── urgentTaskService.ts # Urgent task operations
+│   └── userService.ts    # User profile operations
+├── database/             # SQL schema and migrations
+├── assets/               # Images, fonts, animations
+└── docs/                 # Additional documentation
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+---
 
-## Learn more
+## 🎨 Design Philosophy
 
-To learn more about developing your project with Expo, look at the following resources:
+**Momentum** follows a **modern, minimal design language** with these principles:
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+- **Clarity First**: Every element has a clear purpose
+- **Consistent Interactions**: Predictable user experience
+- **Delightful Details**: Micro-animations that add joy
+- **Accessible**: Designed for users of all abilities
+- **Performance**: Smooth 60fps animations and fast loading
 
-## Join the community
+---
 
-Join our community of developers creating universal apps.
+## 🚀 Version 1.0 Features
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+This is the **initial release (v1.0)** of Momentum, featuring:
+
+### ✅ **Completed Features**
+- 🔐 Complete user authentication system
+- 📋 Full task CRUD operations
+- 🚨 Urgent task management
+- 🎯 Drag-and-drop task reordering
+- 📊 Task completion statistics
+- 👤 User profile management
+- ⚙️ Comprehensive settings
+- 🎨 Modern UI with animations
+- 📱 Cross-platform compatibility
+- ⚡ Performance optimizations
+
+### 🔮 **Coming in Future Versions**
+- 📅 Calendar integration
+- 🏷️ Task categories and tags
+- 🔔 Push notifications
+- 📈 Advanced analytics
+- 👥 Team collaboration
+- 🌙 Dark mode theme
+- 🔄 Offline synchronization
+
+---
+
+## 🤝 Contributing
+
+We welcome contributions to make Momentum even better! Here's how you can help:
+
+1. **Fork the repository**
+2. **Create a feature branch** (`git checkout -b feature/amazing-feature`)
+3. **Commit your changes** (`git commit -m 'Add amazing feature'`)
+4. **Push to the branch** (`git push origin feature/amazing-feature`)
+5. **Open a Pull Request**
+
+### Development Guidelines
+
+- Follow the existing code style
+- Add TypeScript types for new features
+- Test your changes thoroughly
+- Update documentation as needed
+
+---
+
+## 🐛 Issues & Support
+
+Encountered a bug or have a feature request?
+
+- 🐛 **Bug Reports**: [Create an issue](https://github.com/PixelPioneer404/Momentum/issues)
+- 💡 **Feature Requests**: [Start a discussion](https://github.com/PixelPioneer404/Momentum/discussions)
+- 📧 **Direct Contact**: Open an issue for support
+
+---
+
+## 📄 License
+
+This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) file for details.
+
+---
+
+## 🙏 Acknowledgments
+
+- **Expo Team** - For the amazing development platform
+- **Supabase** - For the powerful backend infrastructure
+- **React Native Community** - For the incredible ecosystem
+- **Lottie** - For beautiful animations
+- **All Contributors** - Thank you for making Momentum better!
+
+---
+
+<div align="center">
+
+**Made with ❤️ by [PixelPioneer404](https://github.com/PixelPioneer404)**
+
+*Star ⭐ this repository if you found it helpful!*
+
+</div>
