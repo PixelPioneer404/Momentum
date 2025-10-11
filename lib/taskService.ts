@@ -170,3 +170,51 @@ export async function getNextTaskOrder(userId: string): Promise<number> {
         return 0;
     }
 }
+
+// Get task statistics for a specific date
+export async function getTaskStatistics(userId: string, date?: string): Promise<{
+    totalTasks: number;
+    completedTasks: number;
+    tasksCreatedToday: number;
+    tasksCompletedToday: number;
+}> {
+    try {
+        const today = date || new Date().toISOString().split('T')[0];
+        
+        const { data, error } = await supabase
+            .from('tasks')
+            .select('*')
+            .eq('user_id', userId);
+
+        if (error) {
+            console.error('Error getting task statistics:', error);
+            throw error;
+        }
+
+        const tasks = data || [];
+        
+        const totalTasks = tasks.length;
+        const completedTasks = tasks.filter(task => task.completed).length;
+        const tasksCreatedToday = tasks.filter(task => 
+            task.created_at.split('T')[0] === today
+        ).length;
+        const tasksCompletedToday = tasks.filter(task => 
+            task.completed && task.updated_at.split('T')[0] === today
+        ).length;
+
+        return {
+            totalTasks,
+            completedTasks,
+            tasksCreatedToday,
+            tasksCompletedToday
+        };
+    } catch (error) {
+        console.error('getTaskStatistics error:', error);
+        return {
+            totalTasks: 0,
+            completedTasks: 0,
+            tasksCreatedToday: 0,
+            tasksCompletedToday: 0
+        };
+    }
+}

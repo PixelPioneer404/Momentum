@@ -1,4 +1,5 @@
 import ModalPopup from '@/components/ModalPopup';
+import SettingsModal from '@/components/SettingsModal';
 import TaskView from '@/components/TaskView';
 import { AuthContext } from '@/contexts/AuthProvider';
 import { useUser } from '@/contexts/UserContext';
@@ -14,7 +15,6 @@ import PlusIcon from "../assets/icons/plus.svg";
 import RightArrow from "../assets/icons/right-arrow.svg";
 import SetingsIcon from "../assets/icons/settings-icon.svg";
 import UnCheckedIcon from "../assets/icons/unchecked-icon.svg";
-import { signOut } from '../lib/auth';
 import {
     createTask as createTaskDB,
     Task as DBTask,
@@ -105,6 +105,7 @@ const Home = () => {
     
     const [visible, setVisible] = useState(false)
     const [taskViewVisible, setTaskViewVisible] = useState(false)
+    const [settingsVisible, setSettingsVisible] = useState(false)
     const [selectedTask, setSelectedTask] = useState<Task | null>(null)
 
     const [isEditing, setIsEditing] = useState(false)
@@ -292,6 +293,12 @@ const Home = () => {
 
     return (
         <View className='items-center relative flex-1 bg-[#ccd5ae]'>
+            {/* SettingsModal */}
+            <SettingsModal
+                visible={settingsVisible}
+                setVisible={setSettingsVisible}
+            />
+
             {/* TaskView - Conditional rendering */}
             {taskViewVisible && selectedTask && (
                 <TaskView
@@ -352,19 +359,12 @@ const Home = () => {
                         </View>
                     </View>
                     <TouchableOpacity
-                        onPress={async () => {
+                        onPress={() => {
                             Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium)
                             setTimeout(() => {
                                 Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
                             }, 50)
-                            
-                            // Logout functionality for testing
-                            try {
-                                await signOut();
-                                console.log('Successfully signed out');
-                            } catch (error) {
-                                console.error('Sign out error:', error);
-                            }
+                            setSettingsVisible(true)
                         }}
                     >
                         <SetingsIcon width={40} height={40} />
