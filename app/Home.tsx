@@ -1,4 +1,3 @@
-import AlertToast from '@/components/AlertToast';
 import ModalPopup from '@/components/ModalPopup';
 import SettingsModal from '@/components/SettingsModal';
 import TaskView from '@/components/TaskView';
@@ -26,6 +25,7 @@ import {
     updateTask as updateTaskDB,
     updateTasksOrder
 } from '../lib/taskService';
+import { createOrUpdateUrgentTask, deleteUrgentTask as deleteUrgentTaskDB, getUserUrgentTask, UrgentTask } from '../lib/urgentTaskService';
 import { getUserProfile } from '../lib/userService';
 
 export interface Task {
@@ -49,15 +49,16 @@ const dbTaskToUITask = (dbTask: DBTask): Task => ({
 
 const Home = () => {
     const { userName, setUserName } = useUser();
-    const { user } = useContext(AuthContext);
+    const { user, loading } = useContext(AuthContext);
     
     // State for display name from database
     const [displayName, setDisplayName] = useState<string>('');
     const [tasksLoading, setTasksLoading] = useState<boolean>(true);
     
     // Debug: Show user ID for testing authentication persistence
-    console.log('Home - Current User ID:', user?.id);
-    console.log('Home - User Email:', user?.email);
+    console.log('🔍 Home - Auth Loading:', loading);
+    console.log('🔍 Home - Current User ID:', user?.id);
+    console.log('🔍 Home - User Email:', user?.email);
     
     // Fetch user's display name from database when component mounts
     useEffect(() => {
@@ -103,12 +104,49 @@ const Home = () => {
 
         fetchTasks();
     }, [user?.id]);
+
+    // Fetch user's urgent task when component mounts and auth is ready
+    useEffect(() => {
+        const fetchUrgentTask = async () => {
+            // Wait for authentication to be fully loaded
+            if (loading) {
+                console.log('⏳ Auth still loading, waiting...');
+                return;
+            }
+
+            if (!user?.id) {
+                console.log('❌ No user ID available after auth loaded');
+                return;
+            }
+
+            try {
+                console.log('🔍 Fetching urgent task for user:', user.id);
+                console.log('🔍 User object:', JSON.stringify(user, null, 2));
+                
+                const urgentTaskData = await getUserUrgentTask(user.id);
+                console.log('📨 Urgent task data received:', urgentTaskData);
+                
+                setUrgentTask(urgentTaskData);
+                
+                if (urgentTaskData) {
+                    console.log('✅ Urgent task set successfully:', urgentTaskData.title);
+                } else {
+                    console.log('📝 No urgent task found for user:', user.id);
+                }
+            } catch (error) {
+                console.error('❌ Error fetching urgent task:', error);
+            }
+        };
+
+        fetchUrgentTask();
+    }, [user, loading]); // Include full user object
     
     const [visible, setVisible] = useState(false)
     const [taskViewVisible, setTaskViewVisible] = useState(false)
     const [settingsVisible, setSettingsVisible] = useState(false)
     const [selectedTask, setSelectedTask] = useState<Task | null>(null)
-    const [urgentTaskAlertVisible, setUrgentTaskAlertVisible] = useState(false)
+    const [urgentTaskModalVisible, setUrgentTaskModalVisible] = useState(false)
+    const [urgentTask, setUrgentTask] = useState<UrgentTask | null>(null)
 
     const [isEditing, setIsEditing] = useState(false)
 
@@ -239,13 +277,59 @@ const Home = () => {
         }
     };
 
+    // Add or update urgent task
+    const addUrgentTask = async (title: string) => {
+        if (!user?.id) {
+            console.error('❌ No user ID available');
+            return;
+        }
+
+        try {
+            console.log('🔄 Creating/updating urgent task:', title);
+            const newUrgentTask = await createOrUpdateUrgentTask(user.id, title);
+            if (newUrgentTask) {
+                console.log('✅ Urgent task created/updated successfully:', newUrgentTask);
+                setUrgentTask(newUrgentTask);
+                console.log('✅ State updated with new urgent task');
+                Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+            } else {
+                console.error('❌ Failed to create/update urgent task');
+            }
+        } catch (error) {
+            console.error('❌ Error creating/updating urgent task:', error);
+        }
+    };
+
+    // Delete urgent task
+    const deleteUrgentTask = async () => {
+        if (!user?.id) {
+            console.error('❌ No user ID available');
+            return;
+        }
+
+        try {
+            console.log('🗑️ Deleting urgent task for user:', user.id);
+            const success = await deleteUrgentTaskDB(user.id);
+            if (success) {
+                console.log('✅ Urgent task deleted successfully');
+                setUrgentTask(null);
+                console.log('✅ State updated - urgent task removed');
+                Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+            } else {
+                console.error('❌ Failed to delete urgent task');
+            }
+        } catch (error) {
+            console.error('❌ Error deleting urgent task:', error);
+        }
+    };
+
     // Right swipe reveals delete button (swipe right to delete)
     const renderUnderlayRight = ({ item }: UnderlayParams<Task>) => (
         <TouchableOpacity
             className='bg-red-500 aspect-square h-[4.8rem] rounded-[20px] justify-center items-center shadow-xl ml-2'
             onPress={() => deleteTask(item.id)}
         >
-            <DeleteBtn width={24} height={24} color='white' />
+            <DeleteBtn width={24} height={24} color='white' strokeWidth={2} />
         </TouchableOpacity>
     )
 
@@ -333,12 +417,24 @@ const Home = () => {
                 editTask={editTask}
             />
 
-            {/* AlertToast for urgent task coming soon */}
-            <AlertToast
-                alertTitle="Coming Soon"
-                alertDesc="The urgent task feature is not implemented yet. Stay tuned for future updates!"
-                visible={urgentTaskAlertVisible}
-                setVisible={setUrgentTaskAlertVisible}
+            {/* Urgent Task Modal */}
+            <ModalPopup
+                visible={urgentTaskModalVisible}
+                setVisible={setUrgentTaskModalVisible}
+                title={title}
+                setTitle={setTitle}
+                desc={desc}
+                setDesc={setDesc}
+                date={date}
+                setDate={setDate}
+                addTask={addTask}
+                isEditing={false}
+                setIsEditing={setIsEditing}
+                selectedTask={null}
+                setSelectedTask={setSelectedTask}
+                editTask={editTask}
+                isUrgentTask={true}
+                addUrgentTask={addUrgentTask}
             />
             <TouchableOpacity
                 className='absolute bottom-10 right-10 aspect-square w-[30vw] rounded-[40px] shadow-[0_4px_10px_20px_#000000] bg-[#283618] justify-center items-center'
@@ -411,7 +507,7 @@ const Home = () => {
                         }}
                         ListHeaderComponent={
                             <View className='flex-col w-full gap-4 mb-[24px] mt-[24px]'>
-                                <View className='relative w-[90vw] h-[15vh] bg-[#3a2618] rounded-[35px] justify-center items-center'>
+                                <View className='relative w-[90vw] h-[15vh] bg-[#3a2618] rounded-[35px] justify-center items-center px-6'>
                                     <TouchableOpacity
                                         className='absolute bottom-5 right-5 aspect-square p-3 rounded-full shadow-2xl bg-[#ccd5ae] justify-center items-center'
                                         style={{ zIndex: 999 }}
@@ -419,13 +515,39 @@ const Home = () => {
                                             Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium)
                                             setTimeout(() => {
                                                 Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
-                                                setUrgentTaskAlertVisible(true)
+                                                if (urgentTask) {
+                                                    // Delete urgent task
+                                                    deleteUrgentTask()
+                                                } else {
+                                                    // Add urgent task
+                                                    setUrgentTaskModalVisible(true)
+                                                }
                                             }, 50)
                                         }}
                                     >
-                                        <PlusIcon height={20} width={20} color="#000000" strokeWidth={4} />
+                                        {urgentTask ? (
+                                            <DeleteBtn height={20} width={20} color="#000000" strokeWidth={2} />
+                                        ) : (
+                                            <PlusIcon height={20} width={20} color="#000000" strokeWidth={4} />
+                                        )}
                                     </TouchableOpacity>
-                                    <Text className='text-gray-300/40 text-[15px] font-alan-sans-medium'>What&apos;s your most urgent task ?</Text>
+                                    {urgentTask ? (
+                                        <View className='flex-1 justify-center items-center px-4'>
+                                            <Text className='text-gray-400 text-[11px] font-alan-sans-medium mb-1 tracking-widest uppercase'>
+                                                Priority Task
+                                            </Text>
+                                            <Text 
+                                                className='text-white text-[18px] font-alan-sans-medium text-center leading-6 font-bold'
+                                                numberOfLines={2}
+                                            >
+                                                {urgentTask.title}
+                                            </Text>
+                                        </View>
+                                    ) : (
+                                        <Text className='text-gray-300/40 text-[15px] font-alan-sans-medium'>
+                                            What&apos;s your most urgent task ?
+                                        </Text>
+                                    )}
                                 </View>
                                 <View className='w-full items-center justify-start gap-4 mt-5 flex-row'>
                                     <Text className='font-sans font-bold text-[#191923] text-[32px] ml-3'>Tasks</Text>

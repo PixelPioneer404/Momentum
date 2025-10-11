@@ -1,6 +1,6 @@
 import { Task } from '@/app/Home';
 import * as Haptics from 'expo-haptics';
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Keyboard, Modal, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
 import CheckedIcon2 from "../assets/icons/checked-icon-2.svg";
@@ -24,9 +24,11 @@ interface TaskFields {
     selectedTask: Task | null,
     setSelectedTask: (selectedTask: Task | null) => void
     editTask: (taskID: string, title: string, desc: string, date: string) => void
+    isUrgentTask?: boolean
+    addUrgentTask?: (title: string) => void
 }
 
-const ModalPopup = ({ visible, setVisible, title, setTitle, desc, setDesc, date, setDate, addTask, isEditing, setIsEditing, selectedTask, setSelectedTask, editTask }: TaskFields) => {
+const ModalPopup = ({ visible, setVisible, title, setTitle, desc, setDesc, date, setDate, addTask, isEditing, setIsEditing, selectedTask, setSelectedTask, editTask, isUrgentTask = false, addUrgentTask }: TaskFields) => {
     const [keyboardHeight, setKeyboardHeight] = useState(0);
     const [isDatePickerVisible, setDatePickerVisible] = useState(false);
 
@@ -147,9 +149,13 @@ const ModalPopup = ({ visible, setVisible, title, setTitle, desc, setDesc, date,
                                         : <TaskIcon width={40} height={40} />
                                     }
                                 </View>
-                                {isEditing
-                                    ? <Text className='text-[2.8rem] font-alan-sans-medium text-[#283618]'>Edit this task</Text>
-                                    : <Text className='text-[2.8rem] font-alan-sans-medium text-[#283618]'>Add a task</Text>
+                                {isUrgentTask 
+                                    ? <Text className='text-[2.8rem] font-alan-sans-medium text-[#283618]'>
+                                        {isEditing ? 'Edit urgent task' : 'Add urgent task'}
+                                      </Text>
+                                    : isEditing
+                                        ? <Text className='text-[2.8rem] font-alan-sans-medium text-[#283618]'>Edit this task</Text>
+                                        : <Text className='text-[2.8rem] font-alan-sans-medium text-[#283618]'>Add a task</Text>
                                 }
                             </View>
                         </View>
@@ -172,44 +178,50 @@ const ModalPopup = ({ visible, setVisible, title, setTitle, desc, setDesc, date,
                                         placeholderTextColor='rgba(25,25,35,0.4)'
                                     />
                                 </View>
-                                <View className='w-full gap-2'>
-                                    <View className='flex-row items-center justify-between'>
-                                        <Text className='text-[22px] font-alan-sans-medium text-[#191923] ml-3'>Due Date</Text>
-                                        {date && (
+                                
+                                {/* Only show date and description for regular tasks, not urgent tasks */}
+                                {!isUrgentTask && (
+                                    <>
+                                        <View className='w-full gap-2'>
+                                            <View className='flex-row items-center justify-between'>
+                                                <Text className='text-[22px] font-alan-sans-medium text-[#191923] ml-3'>Due Date</Text>
+                                                {date && (
+                                                    <TouchableOpacity
+                                                        onPress={clearDate}
+                                                        className='mr-3 px-3 py-1 bg-red-500/20 rounded-full'
+                                                    >
+                                                        <Text className='text-red-700 text-sm font-alan-sans-medium'>Clear</Text>
+                                                    </TouchableOpacity>
+                                                )}
+                                            </View>
                                             <TouchableOpacity
-                                                onPress={clearDate}
-                                                className='mr-3 px-3 py-1 bg-red-500/20 rounded-full'
+                                                className='text-base text-black/80 font-alan-sans-medium bg-[#f9f7e7] px-5 h-[50px] rounded-[25px] justify-center'
+                                                onPress={() => {
+                                                    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                                                    showDatePicker();
+                                                }}
                                             >
-                                                <Text className='text-red-700 text-sm font-alan-sans-medium'>Clear</Text>
+                                                <Text className={`text-base font-alan-sans-medium ${date ? 'text-black/80' : 'text-black/40'
+                                                    }`}>
+                                                    {date || 'Select due date'}
+                                                </Text>
                                             </TouchableOpacity>
-                                        )}
-                                    </View>
-                                    <TouchableOpacity
-                                        className='text-base text-black/80 font-alan-sans-medium bg-[#f9f7e7] px-5 h-[50px] rounded-[25px] justify-center'
-                                        onPress={() => {
-                                            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                                            showDatePicker();
-                                        }}
-                                    >
-                                        <Text className={`text-base font-alan-sans-medium ${date ? 'text-black/80' : 'text-black/40'
-                                            }`}>
-                                            {date || 'Select due date'}
-                                        </Text>
-                                    </TouchableOpacity>
-                                </View>
-                                <View className='w-full gap-2'>
-                                    <Text className='text-[22px] font-alan-sans-medium text-[#191923] ml-3'>Description</Text>
-                                    <TextInput
-                                        className='text-base text-black/80 font-alan-sans-medium bg-[#f9f7e7] px-5 pt-4 h-[150px] rounded-[25px]'
-                                        placeholder="Solve the 3rd chapter"
-                                        value={desc}
-                                        onChangeText={setDesc}
-                                        placeholderTextColor='rgba(25,25,35,0.4)'
-                                        multiline
-                                        numberOfLines={3}
-                                        textAlignVertical='top'
-                                    />
-                                </View>
+                                        </View>
+                                        <View className='w-full gap-2'>
+                                            <Text className='text-[22px] font-alan-sans-medium text-[#191923] ml-3'>Description</Text>
+                                            <TextInput
+                                                className='text-base text-black/80 font-alan-sans-medium bg-[#f9f7e7] px-5 pt-4 h-[150px] rounded-[25px]'
+                                                placeholder="Solve the 3rd chapter"
+                                                value={desc}
+                                                onChangeText={setDesc}
+                                                placeholderTextColor='rgba(25,25,35,0.4)'
+                                                multiline
+                                                numberOfLines={3}
+                                                textAlignVertical='top'
+                                            />
+                                        </View>
+                                    </>
+                                )}
                             </View>
                         </ScrollView>
 
@@ -233,10 +245,16 @@ const ModalPopup = ({ visible, setVisible, title, setTitle, desc, setDesc, date,
                                 className='w-full h-[72px] bg-[#283618] rounded-[30px] justify-center items-center gap-2 flex-row'
                                 onPress={() => {
                                     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-                                    console.log('Save button pressed:', { isEditing, selectedTask, title, desc, date });
+                                    console.log('Save button pressed:', { isEditing, selectedTask, title, desc, date, isUrgentTask });
 
                                     if (title.trim()) {
-                                        if (isEditing && selectedTask?.id) {
+                                        if (isUrgentTask) {
+                                            // Handle urgent task
+                                            console.log('Adding/updating urgent task with title:', title);
+                                            if (addUrgentTask) {
+                                                addUrgentTask(title);
+                                            }
+                                        } else if (isEditing && selectedTask?.id) {
                                             console.log('Editing task:', selectedTask.id, 'with data:', { title, desc, date });
                                             editTask(selectedTask.id, title, desc, date);
                                             setIsEditing(false);
@@ -257,17 +275,20 @@ const ModalPopup = ({ visible, setVisible, title, setTitle, desc, setDesc, date,
                                     }
                                 }}
                             >
-                                {isEditing
-                                    ?
-                                    <>
-                                        <CheckedIcon2 width={24} height={24} />
-                                        <Text className='text-[#f9f7e7]/80 font-alan-sans-medium text-3xl'>Save</Text>
-                                    </>
-                                    :
-                                    <>
+                                {isUrgentTask 
+                                    ? <>
                                         <PlusIcon width={24} height={24} color='#f9f7e7' strokeWidth={2} />
-                                        <Text className='text-[#f9f7e7]/80 font-alan-sans-medium text-3xl'>Add</Text>
-                                    </>
+                                        <Text className='text-[#f9f7e7]/80 font-alan-sans-medium text-3xl'>Set Priority</Text>
+                                      </>
+                                    : isEditing
+                                        ? <>
+                                            <CheckedIcon2 width={24} height={24} />
+                                            <Text className='text-[#f9f7e7]/80 font-alan-sans-medium text-3xl'>Save</Text>
+                                          </>
+                                        : <>
+                                            <PlusIcon width={24} height={24} color='#f9f7e7' strokeWidth={2} />
+                                            <Text className='text-[#f9f7e7]/80 font-alan-sans-medium text-3xl'>Add</Text>
+                                          </>
                                 }
                             </TouchableOpacity>
                         </View>
