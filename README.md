@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="assets/app-logo.png" alt="Momentum Logo" width="120" height="120" />
+<img src="assets/app-logo.png" alt="Momentum Logo" width="120" height="120" style="border-radius: 50%; object-fit: cover;" />
 
 # Momentum
 
