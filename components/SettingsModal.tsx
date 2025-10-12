@@ -6,8 +6,7 @@ import { useContext, useEffect, useState } from 'react';
 import { Alert, Modal, Pressable, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import PlusIcon from "../assets/icons/plus.svg";
 import { signOut } from '../lib/auth';
-import { getTaskStatistics } from '../lib/taskService';
-import { getUserProfile, updateUserDisplayName } from '../lib/userService';
+import { getTaskStatistics, getUserProfile, updateUserDisplayName } from '../lib/devServices';
 
 interface SettingsModalProps {
     visible: boolean;

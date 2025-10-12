@@ -4,11 +4,12 @@ import { useUser } from '@/contexts/UserContext';
 import * as Haptics from 'expo-haptics';
 import { router } from 'expo-router';
 import LottieView from 'lottie-react-native';
-import React, { useContext, useState } from 'react';
+import { useContext, useState } from 'react';
 import { Text, TouchableOpacity, View } from 'react-native';
 import { TextInput } from 'react-native-gesture-handler';
+import { getMockUser, isDevelopmentMode } from '../lib/devConfig';
+import { createUserProfile } from '../lib/devServices';
 import { supabase } from '../lib/supabase';
-import { createUserProfile } from '../lib/userService';
 
 const Onboarding = () => {
     const { setUserName } = useUser();
@@ -31,6 +32,15 @@ const Onboarding = () => {
     };
 
     const handleContinue = async () => {
+        // Check if development mode is enabled
+        if (isDevelopmentMode()) {
+            console.log('🚧 Development mode enabled - bypassing onboarding validation');
+            const mockUser = getMockUser();
+            setUserName(mockUser.display_name);
+            router.push('/Home');
+            return;
+        }
+
         if (name.trim() === '') {
             Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error)
             setToastTitle('Input Required');

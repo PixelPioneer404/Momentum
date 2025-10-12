@@ -16,17 +16,20 @@ import RightArrow from "../assets/icons/right-arrow.svg";
 import SetingsIcon from "../assets/icons/settings-icon.svg";
 import UnCheckedIcon from "../assets/icons/unchecked-icon.svg";
 import {
+    createOrUpdateUrgentTask,
     createTask as createTaskDB,
     Task as DBTask,
     deleteTask as deleteTaskDB,
+    deleteUrgentTask as deleteUrgentTaskDB,
     getNextTaskOrder,
+    getUserProfile,
     getUserTasks,
+    getUserUrgentTask,
     toggleTaskCompletion,
     updateTask as updateTaskDB,
-    updateTasksOrder
-} from '../lib/taskService';
-import { createOrUpdateUrgentTask, deleteUrgentTask as deleteUrgentTaskDB, getUserUrgentTask, UrgentTask } from '../lib/urgentTaskService';
-import { getUserProfile } from '../lib/userService';
+    updateTasksOrder,
+    UrgentTask
+} from '../lib/devServices'; // Using dev-friendly services
 
 export interface Task {
     id: string,

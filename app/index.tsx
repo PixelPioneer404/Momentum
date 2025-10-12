@@ -1,13 +1,22 @@
 import * as Haptics from 'expo-haptics';
+import { router } from 'expo-router';
 import LottieView from "lottie-react-native";
 import { Alert, Text, TouchableOpacity, View } from "react-native";
 import GoogleIcon from "../assets/icons/google-icon.svg";
 import { signInWithGoogle } from "../lib/auth";
+import { isDevelopmentMode } from "../lib/devConfig";
 
 export default function App() {
 
   const handleGoogleLogin = async () => {
     try {
+      // Check if development mode is enabled
+      if (isDevelopmentMode()) {
+        console.log('🚧 Development mode enabled - bypassing authentication');
+        router.push('/Onboarding');
+        return;
+      }
+      
       await signInWithGoogle();
       // Navigation will be handled by the AuthProvider and _layout.tsx
     } catch (error) {

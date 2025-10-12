@@ -60,6 +60,15 @@
 - 📳 Haptic feedback for interactions
 - 🌊 Smooth transitions and micro-interactions
 
+### 🚧 **Developer-Friendly Features**
+- **🔄 One-Click Development Mode** - Toggle authentication bypass with a single flag
+- **🎨 UI-Only Testing** - Focus purely on design and user experience
+- **📱 Instant Preview** - No login required for stakeholder demos
+- **🛠️ Mock Data System** - Realistic test data for all app features
+- **⚡ Rapid Iteration** - Skip authentication setup during UI development
+
+> **Why This Matters:** Unlike typical Expo projects that require full authentication setup for testing, Momentum includes a smart development flag system. Simply toggle `DEVELOPMENT_MODE: true` in the config to bypass all authentication and work with mock data - perfect for UI development, design reviews, and quick iterations!
+
 ---
 
 ## 🛠 Tech Stack
@@ -148,6 +157,29 @@ For mobile development:
    - **Android Emulator**: Press `a` in the terminal
    - **Web**: Press `w` in the terminal
 
+### 🚧 **Quick Start for UI Development (No Auth Setup Required!)**
+
+Want to explore the app UI without setting up authentication? Momentum includes a unique development mode:
+
+1. **Clone and install** (steps 1-2 above)
+2. **Enable development mode**:
+   ```typescript
+   // In lib/devConfig.ts
+   export const DEV_CONFIG = {
+     DEVELOPMENT_MODE: true, // Change to true
+     // ...
+   };
+   ```
+3. **Start the app**:
+   ```bash
+   npx expo start
+   ```
+4. **Enjoy!** - No login required, full UI access with mock data
+
+> **🎯 Perfect for:** UI testing, design reviews, stakeholder demos, rapid prototyping
+
+> **📋 See:** `DEV_MODE_INSTRUCTIONS.md` for complete development mode guide
+
 ---
 
 ## 📱 Screenshots
@@ -223,6 +255,9 @@ This is the **initial release (v1.0)** of Momentum, featuring:
 - 🎨 Modern UI with animations
 - 📱 Cross-platform compatibility
 - ⚡ Performance optimizations
+- **🚧 Development Mode Toggle** - Unique feature for UI-focused development
+
+> **⭐ Standout Feature:** Unlike typical Expo apps, Momentum includes a smart development flag that lets you bypass authentication entirely. Perfect for UI development, design reviews, and rapid prototyping without backend setup!
 
 ### 🔮 **Coming in Future Versions**
 - 📅 Calendar integration
