@@ -200,14 +200,15 @@ Want to explore the app UI without setting up authentication? Momentum includes 
 
 <div align="center">
 
-| Onboarding | Task Management | Urgent Tasks |
-|------------|-----------------|--------------|
-| *Beautiful welcome experience* | *Intuitive task organization* | *Focus on what matters* |
+| Welcome Screen | Home/Task Management | Add Task Modal | Settings |
+|----------------|---------------------|----------------|----------|
+| <img src=".github/images/welcome.png" width="200" alt="Welcome Screen"/> | <img src=".github/images/home.png" width="200" alt="Home Screen"/> | <img src=".github/images/add-task.png" width="200" alt="Add Task Modal"/> | <img src=".github/images/settings.png" width="200" alt="Settings Screen"/> |
+| *Beautiful welcome experience with animations* | *Intuitive task organization & management* | *Seamless task creation flow* | *Comprehensive user preferences* |
 
-| Settings | Animations | Cross-Platform |
-|----------|------------|----------------|
-| *Comprehensive preferences* | *Delightful interactions* | *Works everywhere* |
+</div>
 
+<div align="center">
+  <h3>🎨 Beautiful Design • 📱 Intuitive Interface • ✨ Smooth Animations</h3>
 </div>
 
 ---
