@@ -1,7 +1,8 @@
 // app/auth.tsx
 import { useRouter } from 'expo-router';
+import LottieView from 'lottie-react-native';
 import { useEffect } from 'react';
-import { ActivityIndicator, View } from 'react-native';
+import { View } from 'react-native';
 
 export default function AuthPage() {
   const router = useRouter();
@@ -21,7 +22,12 @@ export default function AuthPage() {
 
   return (
     <View style={{ flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: "#ccd5ae" }}>
-      <ActivityIndicator size="large" color="#283618" />
+      <LottieView
+        source={require('../assets/lottie/activity-indicator.json')}
+        autoPlay
+        loop
+        style={{ width: 100, height: 100 }}
+      />
     </View>
   );
 }

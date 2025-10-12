@@ -71,6 +71,20 @@
 
 ---
 
+## 🔮 Upcoming Features
+
+### 📱 **Version 1.1**
+- **📡 Offline Support** - Work with your tasks even without internet connection
+- **🔄 Smart Sync** - Automatic synchronization when back online
+
+### 🌟 **Version 2.0** 
+- **💬 Feedback Hub** - In-app user reviews and feature suggestions
+- **📊 Community Voting** - Vote on upcoming features and improvements
+
+*Stay tuned for these exciting updates!*
+
+---
+
 ## 🛠 Tech Stack
 
 ### **Frontend**

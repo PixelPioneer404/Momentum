@@ -1,7 +1,7 @@
 // providers/AuthProvider.tsx
 import type { Session, User } from '@supabase/supabase-js';
 import React, { createContext, useEffect, useState } from 'react';
-import { getMockUser, isDevelopmentMode } from '../lib/devConfig';
+import { getMockUserWithScenario, isDevelopmentMode } from '../lib/devConfig';
 import { supabase } from '../lib/supabase';
 
 interface AuthContextType {
@@ -25,16 +25,15 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     // Check if development mode is enabled
     if (isDevelopmentMode()) {
       console.log('🚧 Development mode enabled - using mock user');
-      const mockUser = getMockUser();
+      const mockUserData = getMockUserWithScenario();
+      console.log('🚧 Mock user metadata:', mockUserData.user_metadata);
+      
       // Create a mock user object that matches the Supabase User type structure
       const devUser = {
-        id: mockUser.id,
-        email: mockUser.email,
+        id: mockUserData.id,
+        email: mockUserData.email,
         app_metadata: {},
-        user_metadata: { 
-          display_name: mockUser.display_name,
-          onboarding_completed: true 
-        },
+        user_metadata: mockUserData.user_metadata,
         aud: 'authenticated',
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
@@ -57,8 +56,18 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         identities: []
       } as unknown as User;
       
+      // Create a mock session for development mode
+      const mockSession = {
+        access_token: 'dev-access-token',
+        refresh_token: 'dev-refresh-token',
+        expires_in: 3600,
+        expires_at: Date.now() + 3600000,
+        token_type: 'bearer',
+        user: devUser
+      } as unknown as Session;
+      
       setUser(devUser);
-      setSession(null); // No real session in dev mode
+      setSession(mockSession); // Create mock session for dev mode
       setLoading(false);
       return;
     }

@@ -1,13 +1,13 @@
-import AlertToast from '@/components/AlertToast';
-import { AuthContext } from '@/contexts/AuthProvider';
-import { useUser } from '@/contexts/UserContext';
 import * as Haptics from 'expo-haptics';
 import { router } from 'expo-router';
 import LottieView from 'lottie-react-native';
 import { useContext, useState } from 'react';
 import { Text, TouchableOpacity, View } from 'react-native';
 import { TextInput } from 'react-native-gesture-handler';
-import { getMockUser, isDevelopmentMode } from '../lib/devConfig';
+import AlertToast from '../components/AlertToast';
+import { AuthContext } from '../contexts/AuthProvider';
+import { useUser } from '../contexts/UserContext';
+import { getMockUserWithScenario, isDevelopmentMode } from '../lib/devConfig';
 import { createUserProfile } from '../lib/devServices';
 import { supabase } from '../lib/supabase';
 
@@ -35,8 +35,8 @@ const Onboarding = () => {
         // Check if development mode is enabled
         if (isDevelopmentMode()) {
             console.log('🚧 Development mode enabled - bypassing onboarding validation');
-            const mockUser = getMockUser();
-            setUserName(mockUser.display_name);
+            const mockUserData = getMockUserWithScenario();
+            setUserName(mockUserData.display_name);
             router.push('/Home');
             return;
         }
@@ -118,7 +118,7 @@ const Onboarding = () => {
             <View className='w-full h-[50vh] absolute bottom-6 p-6 justify-start items-center gap-12'>
                 <View className='w-[90vw] relative'>
                     <TextInput
-                        className='w-full h-[72px] border-2 border-[#283618] rounded-[30px] px-6 pr-20 text-xl font-alan-sans-medium'
+                        className={`w-full h-[72px] border-2 ${name.length > maxLength ? 'border-red-500/80' : 'border-[#283618]'} rounded-[30px] px-6 pr-20 text-xl font-alan-sans-medium`}
                         placeholder='Enter your name'
                         value={name}
                         onChangeText={handleNameChange}
@@ -126,7 +126,7 @@ const Onboarding = () => {
                     />
                     {/* Character counter */}
                     <View className='absolute right-4 h-[72px] justify-center items-center'>
-                        <Text className={`text-base font-alan-sans-medium ${name.length > maxLength ? 'text-[#283618]/80' : 'text-[#283618]/60'}`}>
+                        <Text className={`text-base font-alan-sans-medium ${name.length > maxLength ? 'text-red-500/80' : 'text-[#283618]/60'}`}>
                             {name.length}/{maxLength}
                         </Text>
                     </View>

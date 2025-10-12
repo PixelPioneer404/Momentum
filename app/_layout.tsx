@@ -1,6 +1,4 @@
 // app/_layout.tsx
-import { AuthContext, AuthProvider } from "@/contexts/AuthProvider";
-import { UserProvider } from "@/contexts/UserContext";
 import { useFonts } from "expo-font";
 import * as Linking from "expo-linking";
 import { Stack, useRouter } from "expo-router";
@@ -8,6 +6,8 @@ import * as SplashScreen from "expo-splash-screen";
 import { useContext, useEffect } from "react";
 import { ActivityIndicator, Platform, StatusBar, View } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
+import { AuthContext, AuthProvider } from "../contexts/AuthProvider";
+import { UserProvider } from "../contexts/UserContext";
 import { supabase } from "../lib/supabase";
 import "./global.css";
 
@@ -23,7 +23,14 @@ function AppNavigator() {
   console.log('AppNavigator - loading:', loading);
   console.log('AppNavigator - session:', !!session);
   console.log('AppNavigator - user:', !!user);
-  console.log('AppNavigator - Should show:', (!session || !user) ? 'INDEX' : 'ONBOARDING');
+  
+  if (user) {
+    console.log('AppNavigator - user.user_metadata:', user.user_metadata);
+    console.log('AppNavigator - onboarding_completed:', user.user_metadata?.onboarding_completed);
+    console.log('AppNavigator - welcome_seen:', user.user_metadata?.welcome_seen);
+  }
+  
+  console.log('AppNavigator - Should show:', (!session || !user) ? 'INDEX' : 'WELCOME/ONBOARDING/HOME');
 
   // Navigate based on auth state
   useEffect(() => {
@@ -31,12 +38,17 @@ function AppNavigator() {
       if (session && user) {
         // Check if user has completed onboarding
         const hasCompletedOnboarding = user.user_metadata?.onboarding_completed;
+        const hasSeenWelcome = user.user_metadata?.welcome_seen;
+        
         if (hasCompletedOnboarding) {
           console.log('Navigating to Home...');
           router.replace('/Home');
-        } else {
+        } else if (hasSeenWelcome) {
           console.log('Navigating to Onboarding...');
           router.replace('/Onboarding');
+        } else {
+          console.log('Navigating to Welcome...');
+          router.replace('/Welcome' as any);
         }
       } else {
         console.log('Navigating to Index...');
@@ -57,6 +69,7 @@ function AppNavigator() {
     <Stack screenOptions={{ headerShown: false }}>
       <Stack.Screen name="index" />
       <Stack.Screen name="auth" />
+      <Stack.Screen name="Welcome" />
       <Stack.Screen name="Onboarding" />
       <Stack.Screen name="Home" />
     </Stack>

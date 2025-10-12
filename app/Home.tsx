@@ -1,8 +1,3 @@
-import ModalPopup from '@/components/ModalPopup';
-import SettingsModal from '@/components/SettingsModal';
-import TaskView from '@/components/TaskView';
-import { AuthContext } from '@/contexts/AuthProvider';
-import { useUser } from '@/contexts/UserContext';
 import * as Haptics from 'expo-haptics';
 import LottieView from 'lottie-react-native';
 import { useContext, useEffect, useMemo, useState } from 'react';
@@ -15,6 +10,11 @@ import PlusIcon from "../assets/icons/plus.svg";
 import RightArrow from "../assets/icons/right-arrow.svg";
 import SetingsIcon from "../assets/icons/settings-icon.svg";
 import UnCheckedIcon from "../assets/icons/unchecked-icon.svg";
+import ModalPopup from '../components/ModalPopup';
+import SettingsModal from '../components/SettingsModal';
+import TaskView from '../components/TaskView';
+import { AuthContext } from '../contexts/AuthProvider';
+import { useUser } from '../contexts/UserContext';
 import {
     createOrUpdateUrgentTask,
     createTask as createTaskDB,
@@ -158,6 +158,30 @@ const Home = () => {
     const [title, setTitle] = useState("")
     const [desc, setDesc] = useState("")
     const [date, setDate] = useState("")
+
+    // Refetch user profile when settings modal is closed to update displayName
+    useEffect(() => {
+        const refetchUserProfile = async () => {
+            if (!settingsVisible && user?.id) {
+                try {
+                    console.log('🔄 Settings modal closed, refetching user profile...');
+                    const profile = await getUserProfile(user.id);
+                    if (profile?.display_name) {
+                        setDisplayName(profile.display_name);
+                        setUserName(profile.display_name); // Update context as well
+                        console.log('✅ Updated display name after settings close:', profile.display_name);
+                    }
+                } catch (error) {
+                    console.error('❌ Error refetching user profile after settings close:', error);
+                }
+            }
+        };
+
+        // Only refetch when modal goes from visible to not visible
+        if (!settingsVisible) {
+            refetchUserProfile();
+        }
+    }, [settingsVisible, user?.id, setUserName]);
 
     // Memoized sorted tasks to prevent unnecessary re-renders
     const sortedTasks = useMemo(() => {
@@ -347,7 +371,7 @@ const Home = () => {
             swipeEnabled={true}
         >
             <Pressable
-                className={`w-full h-[4.8rem] justify-center items-start rounded-[25px] px-6 mb-5 relative ${isActive ? 'bg-white/40 scale-90' : 'bg-white scale-100'} transition-all duration-300 ease-in-out`}
+                className={`w-full h-[4.8rem] justify-center items-start rounded-[25px] px-6 mb-5 relative ${isActive ? 'bg-white/40 scale-90' : 'bg-[#f9f7e7] scale-100'} transition-all duration-300 ease-in-out`}
                 onLongPress={() => {
                     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium)
                     drag()

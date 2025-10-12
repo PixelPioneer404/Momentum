@@ -1,8 +1,8 @@
-import { Task } from '@/app/Home';
 import * as Haptics from 'expo-haptics';
 import { useEffect, useState } from 'react';
 import { Keyboard, Modal, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
+import { Task } from '../app/Home';
 import CheckedIcon2 from "../assets/icons/checked-icon-2.svg";
 import EditIcon from '../assets/icons/edit-icon.svg';
 import PlusIcon from "../assets/icons/plus.svg";
@@ -133,7 +133,7 @@ const ModalPopup = ({ visible, setVisible, title, setTitle, desc, setDesc, date,
                 />
                 <View className='flex-1 justify-end'>
                     <View
-                        className='bg-[#a3b18a] shadow-[0_0_10px_black] rounded-t-[40px] flex-col'
+                        className='bg-[#ccd5ae] shadow-[0_0_10px_black] rounded-t-[40px] flex-col'
                         style={{
                             maxHeight: keyboardHeight > 0 
                                 ? `${100 - (keyboardHeight / 8)}%` 

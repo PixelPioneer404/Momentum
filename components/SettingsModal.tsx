@@ -1,10 +1,10 @@
-import { AuthContext } from '@/contexts/AuthProvider';
-import { useUser } from '@/contexts/UserContext';
 import * as Haptics from 'expo-haptics';
 import LottieView from 'lottie-react-native';
 import { useContext, useEffect, useState } from 'react';
 import { Alert, Modal, Pressable, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import PlusIcon from "../assets/icons/plus.svg";
+import { AuthContext } from '../contexts/AuthProvider';
+import { useUser } from '../contexts/UserContext';
 import { signOut } from '../lib/auth';
 import { getTaskStatistics, getUserProfile, updateUserDisplayName } from '../lib/devServices';
 
@@ -118,14 +118,27 @@ const SettingsModal = ({ visible, setVisible }: SettingsModalProps) => {
             transparent={true}
             animationType="fade"
             onRequestClose={closeModal}
+            statusBarTranslucent={false}
+            hardwareAccelerated={false}
         >
             <Pressable 
                 className="flex-1 bg-black/50 justify-center items-center px-4"
                 onPress={closeModal}
+                style={{ 
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    flex: 1,
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    bottom: 0
+                }}
             >
                 <Pressable 
                     className="w-[90vw] max-w-[400px] bg-[#f9f7e7] rounded-[30px] p-6 relative"
                     onPress={(e) => e.stopPropagation()}
+                    style={{ position: 'relative' }}
                 >
                     {/* Close Button */}
                     <TouchableOpacity
@@ -168,7 +181,7 @@ const SettingsModal = ({ visible, setVisible }: SettingsModalProps) => {
                                 loop
                                 speed={1.2}
                             />
-                            <View className="ml-4 flex-1 pr-16">
+                            <View className="ml-4 flex-1 pr-12 min-w-0">
                                 {isEditingName ? (
                                     <View>
                                         <TextInput
@@ -176,13 +189,13 @@ const SettingsModal = ({ visible, setVisible }: SettingsModalProps) => {
                                             onChangeText={setEditedName}
                                             className="text-[24px] font-alan-sans-medium text-[#283618] border-b border-[#283618] pb-1"
                                             placeholder="Enter display name"
-                                            autoFocus
                                             maxLength={30}
+                                            autoFocus
                                         />
                                         <View className="flex-row mt-3 gap-3">
                                             <TouchableOpacity
                                                 onPress={handleSaveName}
-                                                className="bg-[#283618] px-5 py-2 rounded-xl flex-1"
+                                                className="bg-[#283618] px-5 py-2 rounded-xl"
                                             >
                                                 <Text className="text-[14px] font-alan-sans-medium text-[#f9f7e7] text-center">
                                                     SAVE
@@ -190,7 +203,7 @@ const SettingsModal = ({ visible, setVisible }: SettingsModalProps) => {
                                             </TouchableOpacity>
                                             <TouchableOpacity
                                                 onPress={handleCancelEdit}
-                                                className="bg-[#ccd5ae] px-5 py-2 rounded-xl flex-1"
+                                                className="bg-[#ccd5ae] px-5 py-2 rounded-xl"
                                             >
                                                 <Text className="text-[14px] font-alan-sans-medium text-[#283618] text-center">
                                                     CANCEL
@@ -203,7 +216,12 @@ const SettingsModal = ({ visible, setVisible }: SettingsModalProps) => {
                                         <Text className="text-[24px] font-alan-sans-medium text-[#283618]">
                                             {displayName || 'User'}
                                         </Text>
-                                        <Text className="text-[16px] font-alan-sans-medium text-[#283618]/60 mt-1">
+                                        <Text 
+                                            className="text-[14px] font-alan-sans-medium text-[#283618]/60 mt-1"
+                                            numberOfLines={1}
+                                            ellipsizeMode="tail"
+                                            style={{ flexShrink: 1 }}
+                                        >
                                             {user?.email}
                                         </Text>
                                     </View>

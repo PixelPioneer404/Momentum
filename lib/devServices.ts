@@ -6,31 +6,46 @@ import * as taskService from './taskService';
 import * as urgentTaskService from './urgentTaskService';
 import * as userService from './userService';
 
-// Mock data for development
-const MOCK_TASKS: taskService.Task[] = [
-  {
-    id: 'task-1',
-    user_id: 'dev-user-123',
-    title: 'Sample Task 1',
-    description: 'This is a sample task for development',
-    due_date: new Date().toISOString().split('T')[0],
-    completed: false,
-    task_order: 0,
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString()
-  },
-  {
-    id: 'task-2',
-    user_id: 'dev-user-123',
-    title: 'Completed Task',
-    description: 'This task is already completed',
-    due_date: new Date().toISOString().split('T')[0],
-    completed: true,
-    task_order: 1,
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString()
-  }
-];
+// Dynamic mock data tracking for development
+let mockTaskCounter = 0;
+let mockTasks: taskService.Task[] = [];
+let mockTasksCreatedToday = 0;
+let mockTasksCompletedToday = 0;
+
+// Initialize with some sample data
+const initializeMockTasks = () => {
+  const today = new Date().toISOString();
+  mockTasks = [
+    {
+      id: 'task-1',
+      user_id: 'dev-user-123',
+      title: 'Sample Task 1',
+      description: 'This is a sample task for development',
+      due_date: new Date().toISOString().split('T')[0],
+      completed: false,
+      task_order: 0,
+      created_at: today,
+      updated_at: today
+    },
+    {
+      id: 'task-2',
+      user_id: 'dev-user-123',
+      title: 'Completed Task',
+      description: 'This task is already completed',
+      due_date: new Date().toISOString().split('T')[0],
+      completed: true,
+      task_order: 1,
+      created_at: today,
+      updated_at: today
+    }
+  ];
+  mockTasksCreatedToday = 2;
+  mockTasksCompletedToday = 1;
+  mockTaskCounter = 2;
+};
+
+// Initialize mock data
+initializeMockTasks();
 
 const MOCK_URGENT_TASK: urgentTaskService.UrgentTask = {
   id: 'urgent-1',
@@ -51,7 +66,7 @@ const MOCK_USER_PROFILE: userService.UserProfile = {
 export const getUserTasks = async (userId: string): Promise<taskService.Task[]> => {
   if (isDevelopmentMode()) {
     console.log('🚧 Dev Mode: Returning mock tasks');
-    return Promise.resolve(MOCK_TASKS);
+    return Promise.resolve(mockTasks);
   }
   return taskService.getUserTasks(userId);
 };
@@ -59,8 +74,9 @@ export const getUserTasks = async (userId: string): Promise<taskService.Task[]> 
 export const createTask = async (userId: string, taskData: taskService.CreateTaskData): Promise<taskService.Task | null> => {
   if (isDevelopmentMode()) {
     console.log('🚧 Dev Mode: Mock creating task', taskData.title);
+    mockTaskCounter++;
     const mockTask: taskService.Task = {
-      id: `task-${Date.now()}`,
+      id: `task-${mockTaskCounter}`,
       user_id: userId,
       title: taskData.title,
       description: taskData.description,
@@ -70,6 +86,9 @@ export const createTask = async (userId: string, taskData: taskService.CreateTas
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString()
     };
+    mockTasks.push(mockTask);
+    mockTasksCreatedToday++; // Increment today's created count
+    console.log('🎯 Mock task created, today count:', mockTasksCreatedToday);
     return Promise.resolve(mockTask);
   }
   return taskService.createTask(userId, taskData);
@@ -94,6 +113,26 @@ export const deleteTask = async (taskId: string): Promise<boolean> => {
 export const toggleTaskCompletion = async (taskId: string, completed: boolean): Promise<taskService.Task | null> => {
   if (isDevelopmentMode()) {
     console.log('🚧 Dev Mode: Mock toggling task completion', taskId, completed);
+    
+    // Find and update the task in our mock data
+    const taskIndex = mockTasks.findIndex(t => t.id === taskId);
+    if (taskIndex !== -1) {
+      const wasCompleted = mockTasks[taskIndex].completed;
+      mockTasks[taskIndex].completed = completed;
+      mockTasks[taskIndex].updated_at = new Date().toISOString();
+      
+      // Track completion stats
+      if (!wasCompleted && completed) {
+        mockTasksCompletedToday++; // Task was just completed
+        console.log('🎯 Mock task completed, today count:', mockTasksCompletedToday);
+      } else if (wasCompleted && !completed) {
+        mockTasksCompletedToday = Math.max(0, mockTasksCompletedToday - 1); // Task was uncompleted
+        console.log('🎯 Mock task uncompleted, today count:', mockTasksCompletedToday);
+      }
+      
+      return Promise.resolve(mockTasks[taskIndex]);
+    }
+    
     return Promise.resolve(null);
   }
   return taskService.toggleTaskCompletion(taskId, completed);
@@ -110,7 +149,7 @@ export const updateTasksOrder = async (tasks: { id: string; task_order: number }
 export const getNextTaskOrder = async (userId: string): Promise<number> => {
   if (isDevelopmentMode()) {
     console.log('🚧 Dev Mode: Mock getting next task order');
-    return Promise.resolve(MOCK_TASKS.length);
+    return Promise.resolve(mockTasks.length);
   }
   return taskService.getNextTaskOrder(userId);
 };
@@ -122,12 +161,12 @@ export const getTaskStatistics = async (userId: string, date?: string): Promise<
   tasksCompletedToday: number;
 }> => {
   if (isDevelopmentMode()) {
-    console.log('🚧 Dev Mode: Returning mock task statistics');
+    console.log('🚧 Dev Mode: Returning dynamic mock task statistics');
     return Promise.resolve({
-      totalTasks: MOCK_TASKS.length,
-      completedTasks: MOCK_TASKS.filter(t => t.completed).length,
-      tasksCreatedToday: 1,
-      tasksCompletedToday: 1
+      totalTasks: mockTasks.length,
+      completedTasks: mockTasks.filter((t: taskService.Task) => t.completed).length,
+      tasksCreatedToday: mockTasksCreatedToday,
+      tasksCompletedToday: mockTasksCompletedToday
     });
   }
   return taskService.getTaskStatistics(userId, date);
@@ -187,3 +226,4 @@ export const updateUserDisplayName = async (userId: string, displayName: string)
 export type { CreateTaskData, Task, UpdateTaskData } from './taskService';
 export type { UrgentTask } from './urgentTaskService';
 export type { UserProfile } from './userService';
+
